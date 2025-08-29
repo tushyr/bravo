@@ -1,0 +1,21 @@
+{
+  "name": "Delhi Liquor Locator",
+  "short_name": "DelhiLiquor",
+  "description": "Find open liquor shops and bars in Delhi NCR",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ea580c",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["food", "lifestyle", "navigation"],
+  "lang": "en-IN",
+  "dir": "ltr"
+}

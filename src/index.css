@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hide scrollbars utility */
+/* For Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* For IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+/* Micro-interactions: ripple (centered) */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+.ripple::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  opacity: 0.25;
+  transform: translate(-50%, -50%);
+  border-radius: 9999px;
+  background: var(--ripple-color, rgba(255, 255, 255, 0.2));
+}
+.ripple:active::after {
+  width: 220%;
+  height: 220%;
+  opacity: 0;
+  transition: width 320ms ease, height 320ms ease, opacity 420ms ease;
+}
+/* Ripple color variants */
+.ripple-rose { --ripple-color: rgba(244, 63, 94, 0.28); }
+.ripple-white { --ripple-color: rgba(255, 255, 255, 0.22); }
+
+/* Accent glow (subtle) */
+.glow-rose {
+  transition: filter 160ms ease;
+}
+.glow-rose:hover {
+  filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.35));
+}
+
+/* Header ambient background (very faint, animated) */
+.header-ambient {
+  pointer-events: none;
+  background:
+    radial-gradient(60% 60% at 85% 0%, rgba(244, 63, 94, 0.09), transparent 60%),
+    radial-gradient(50% 50% at 10% 100%, rgba(255, 0, 92, 0.06), transparent 60%);
+  animation: ambient-move 16s ease-in-out infinite alternate;
+  filter: blur(2px);
+}
+@keyframes ambient-move {
+  0% { transform: translate3d(0,0,0) scale(1); }
+  100% { transform: translate3d(3%, -3%, 0) scale(1.05); }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .ripple:active::after { transition: none; }
+  .header-ambient { animation: none; }
+  /* Elements marked motion-sensitive will stop animating */
+  .motion-sensitive { transition: none !important; transform: none !important; filter: none !important; }
+}
+
+/* Data Saver: when the root element has .reduce-motion, cut animations globally */
+.reduce-motion .ripple:active::after { transition: none; }
+.reduce-motion .header-ambient { animation: none; }
+.reduce-motion .motion-sensitive { transition: none !important; transform: none !important; filter: none !important; }
