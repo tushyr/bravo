@@ -1,6 +1,6 @@
-import { LuClock as Clock, LuBell as Bell } from 'react-icons/lu'
+import { LuClock as Clock, LuBell as Bell, LuBellOff as BellOff } from 'react-icons/lu'
 
-const Header = ({ isDark = false }) => {
+const Header = ({ isDark = false, notificationsEnabled = false, onToggleNotificationsEnabled }) => {
 
   const currentTime = new Date().toLocaleTimeString('en-IN', { 
     hour: '2-digit', 
@@ -28,9 +28,19 @@ const Header = ({ isDark = false }) => {
               <Clock className={isDark ? 'h-4 w-4 text-rose-400' : 'h-4 w-4 text-purple-500'} />
               <span className="font-medium">{currentTime}</span>
             </div>
-            <button aria-label="Notifications" className={isDark ? 'p-2.5 rounded-xl bg-white/5 backdrop-blur-md ring-1 ring-white/10 text-rose-400 hover:bg-white/10 transition-all shadow-md glow-rose ripple ripple-rose active:scale-95 motion-sensitive' : 'p-2.5 rounded-xl bg-white/30 backdrop-blur-md ring-1 ring-white/40 text-purple-600 hover:bg-white/40 transition-all shadow-md glow-rose ripple ripple-rose active:scale-95 motion-sensitive'}>
-              <Bell className="h-5 w-5" />
-            </button>
+            <div className="relative">
+              <button
+                onClick={onToggleNotificationsEnabled}
+                aria-label={notificationsEnabled ? 'Disable notifications' : 'Enable notifications'}
+                aria-pressed={notificationsEnabled}
+                className={isDark 
+                  ? `p-2.5 rounded-xl backdrop-blur-md ring-1 transition-all shadow-md ripple active:scale-95 motion-sensitive ${notificationsEnabled ? 'bg-white/5 ring-white/10 text-rose-400 hover:bg-white/10' : 'bg-white/5 ring-white/10 text-gray-400 hover:bg-white/10'}`
+                  : `p-2.5 rounded-xl backdrop-blur-md ring-1 transition-all shadow-md ripple active:scale-95 motion-sensitive ${notificationsEnabled ? 'bg-white/30 ring-white/40 text-purple-600 hover:bg-white/40' : 'bg-white/30 ring-white/40 text-gray-700 hover:bg-white/40'}`
+                }
+              >
+                {notificationsEnabled ? <Bell className="h-5 w-5" /> : <BellOff className="h-5 w-5" />}
+              </button>
+            </div>
           </div>
           </div>
         </div>
