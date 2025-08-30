@@ -153,9 +153,11 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
             </button>
             <button
               onClick={() => onToggleFavorite(shop.id)}
-              className={isDark ? 'p-2 rounded-full bg-white/5 backdrop-blur-md text-rose-400 hover:bg-white/10 transition-colors ripple ripple-rose active:scale-95 transition-transform' : 'p-2 rounded-full bg-white/20 backdrop-blur-md text-gray-700 hover:text-red-500 hover:bg-white/30 transition-colors ripple ripple-rose active:scale-95 transition-transform'}
+              className={isDark
+                ? `p-2 rounded-full bg-white/5 backdrop-blur-md ${isFavorite ? 'text-yellow-400' : 'text-rose-400'} hover:bg-white/10 transition-colors ripple active:scale-95 transition-transform`
+                : `p-2 rounded-full bg-white/20 backdrop-blur-md ${isFavorite ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-700 hover:text-red-500'} hover:bg-white/30 transition-colors ripple active:scale-95 transition-transform`}
             >
-              <Heart className={`h-4 w-4 ${isFavorite ? 'text-red-500' : ''}`} />
+              <Heart className="h-4 w-4" />
             </button>
             {showReminderMenu && createPortal(
               (

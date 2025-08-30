@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { LuSearch as Search, LuMapPin as MapPin } from 'react-icons/lu'
 
-const SearchBar = ({ searchQuery, setSearchQuery, isDark = false, onNearMe, onNearMeLongPress }) => {
+const SearchBar = ({ searchQuery, setSearchQuery, isDark = false, onNearMe, onNearMeLongPress, isNearMeActive = false }) => {
   const longPressTimeoutRef = useRef(null)
   const longPressTriggeredRef = useRef(false)
 
@@ -44,9 +44,21 @@ const SearchBar = ({ searchQuery, setSearchQuery, isDark = false, onNearMe, onNe
           onPointerUp={cancelLongPress}
           onPointerLeave={cancelLongPress}
           onPointerCancel={cancelLongPress}
-          className={isDark ? 'ml-2 border border-rose-500/40 text-rose-400 rounded-lg px-3 py-1.5 flex items-center gap-1.5 text-xs hover:bg-rose-500/10 transition-colors glow-rose ripple ripple-rose active:scale-95 transition-transform motion-sensitive' : 'ml-2 border border-purple-500/40 text-purple-700 rounded-lg px-3 py-1.5 flex items-center gap-1.5 text-xs hover:bg-purple-50 transition-colors glow-rose ripple ripple-rose active:scale-95 transition-transform motion-sensitive'}>
+          className={isNearMeActive
+            ? (isDark
+                ? 'ml-2 bg-rose-500/20 backdrop-blur-md border border-rose-400/50 text-rose-300 rounded-lg px-3 py-1.5 flex items-center gap-1.5 text-xs shadow-md glow-rose transition-all duration-500 ease-out whitespace-nowrap'
+                : 'ml-2 bg-purple-500/15 backdrop-blur-md border border-purple-400/50 text-purple-700 rounded-lg px-3 py-1.5 flex items-center gap-1.5 text-xs shadow-md transition-all duration-500 ease-out whitespace-nowrap')
+            : (isDark
+                ? 'ml-2 border border-rose-500/40 text-rose-400 rounded-lg px-3 py-1.5 flex items-center gap-1.5 text-xs hover:bg-rose-500/10 transition-all duration-300 ease-out glow-rose ripple ripple-rose active:scale-95 motion-sensitive whitespace-nowrap'
+                : 'ml-2 border border-purple-500/40 text-purple-700 rounded-lg px-3 py-1.5 flex items-center gap-1.5 text-xs hover:bg-purple-50 transition-all duration-300 ease-out glow-rose ripple ripple-rose active:scale-95 motion-sensitive whitespace-nowrap')}>
           <MapPin className="h-4 w-4" />
-          <span>Near Me</span>
+          <span className="inline-flex items-center whitespace-nowrap">
+            <span>Near</span>
+            <span className="ml-1 inline-block w-8 text-left relative">
+              <span className={`transition-opacity duration-300 ease-out ${isNearMeActive ? 'opacity-0' : 'opacity-100'}`}>Me</span>
+              <span className={`absolute top-0 left-0 transition-opacity duration-300 ease-out tabular-nums ${isNearMeActive ? 'opacity-100' : 'opacity-0'}`}>8km</span>
+            </span>
+          </span>
         </button>
       </div>
     </div>

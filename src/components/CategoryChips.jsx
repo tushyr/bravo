@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { LuClock as Clock, LuMap as Map } from 'react-icons/lu'
+import { LuClock as Clock, LuMap as Map, LuHeart as Heart } from 'react-icons/lu'
 
-const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOpenNowFilter, onShowCityMap, isDark = false, distanceRadiusKm, setDistanceRadiusKm, bindOpenRadiusModal }) => {
+const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOpenNowFilter, onShowCityMap, isDark = false, distanceRadiusKm, setDistanceRadiusKm, bindOpenRadiusModal, maskDistanceSelection = false, favoritesOnly = false, setFavoritesOnly }) => {
   const categories = [
     { id: 'all', label: 'All' },
     { id: 'liquor_store', label: '🏪 Shops' },
@@ -13,8 +13,11 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
   const [showRadiusSheet, setShowRadiusSheet] = useState(false)
   const [tempRadius, setTempRadius] = useState(distanceRadiusKm || 10)
 
-  const isCustomSelected = typeof distanceRadiusKm === 'number' && ![2, 5, 10].includes(distanceRadiusKm)
-  const isAnySelected = distanceRadiusKm == null
+  // When maskDistanceSelection is true, do not highlight any distance chip in the UI
+  const showDistanceSelection = !maskDistanceSelection
+  const uiDistance = showDistanceSelection ? distanceRadiusKm : undefined
+  const isCustomSelected = showDistanceSelection && typeof distanceRadiusKm === 'number' && ![2, 5, 10].includes(distanceRadiusKm)
+  const isAnySelected = showDistanceSelection && (distanceRadiusKm == null)
 
   // Dynamic noun for modal text based on current category
   const nounMap = {
@@ -25,12 +28,15 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
   }
   const currentNoun = nounMap[activeCategory] || 'places'
 
-  // Allow parent to open the radius modal
+  // Allow parent to open the radius modal, syncing temp to current distance
   useEffect(() => {
     if (typeof bindOpenRadiusModal === 'function') {
-      bindOpenRadiusModal(() => setShowRadiusSheet(true))
+      bindOpenRadiusModal(() => {
+        setTempRadius(distanceRadiusKm || 10)
+        setShowRadiusSheet(true)
+      })
     }
-  }, [bindOpenRadiusModal])
+  }, [bindOpenRadiusModal, distanceRadiusKm])
 
   // Lock body scroll and add ESC-to-close while modal is open
   useEffect(() => {
@@ -75,25 +81,45 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
           <Map className="h-4 w-4 mr-2" />
           City Map
         </button>
+        <button
+          onClick={() => setFavoritesOnly && setFavoritesOnly(!favoritesOnly)}
+          className={isDark
+            ? `inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium ${favoritesOnly ? 'bg-rose-600/80 text-white border border-rose-500/40' : 'bg-white/5 backdrop-blur-md text-gray-200 border border-white/20 hover:bg-white/10'} transition-colors transition-transform ripple ripple-rose active:scale-95`
+            : `inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium ${favoritesOnly ? 'bg-purple-600 text-white border border-purple-700/40' : 'bg-transparent text-gray-800 border border-gray-300 hover:bg-gray-50'} transition-colors transition-transform ripple ripple-rose active:scale-95`}
+          title={favoritesOnly ? 'Showing favorites' : 'Show favorites only'}
+          aria-pressed={favoritesOnly}
+        >
+          <Heart className={`h-4 w-4 ${favoritesOnly ? '' : (isDark ? 'text-gray-300' : 'text-gray-600')}`} />
+          <span className="sr-only">Favorites</span>
+        </button>
       </div>
 
       {/* Category Chips */}
       <div className="flex space-x-2 overflow-x-auto no-scrollbar pb-0.5">
-        {categories.map((category) => (
+        {categories.map((category, index) => (
           <button
             key={category.id}
             onClick={() => setActiveCategory(category.id)}
-            className={`px-3.5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors transition-transform ripple ripple-rose active:scale-95 ${
+            className={`px-3.5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-500 ease-out ripple ripple-rose active:scale-95 ${
               activeCategory === category.id
                 ? (isDark
-                    ? 'bg-rose-600/80 text-white border border-rose-500/40'
-                    : 'bg-purple-600 text-white border border-purple-700/40')
+                    ? 'bg-rose-600/80 text-white border border-rose-500/40 shadow-lg shadow-rose-500/25 scale-105'
+                    : 'bg-purple-600 text-white border border-purple-700/40 shadow-lg shadow-purple-500/25 scale-105')
                 : (isDark
-                    ? 'bg-white/5 backdrop-blur-md text-gray-200 border border-white/20 hover:bg-white/10'
-                    : 'bg-transparent text-gray-800 border border-gray-300 hover:bg-gray-50')
+                    ? 'bg-white/5 backdrop-blur-md text-gray-200 border border-white/20 hover:bg-white/10 hover:scale-102'
+                    : 'bg-transparent text-gray-800 border border-gray-300 hover:bg-gray-50 hover:scale-102')
             }`}
+            style={{
+              transitionDelay: `${index * 50}ms`,
+              animationDelay: `${index * 100}ms`
+            }}
           >
-            {category.label}
+            <span className="relative z-10">{category.label}</span>
+            {activeCategory === category.id && (
+              <div className={`absolute inset-0 rounded-full animate-pulse ${
+                isDark ? 'bg-rose-500/20' : 'bg-purple-500/20'
+              }`} style={{ animationDuration: '2s' }} />
+            )}
           </button>
         ))}
       </div>
@@ -105,7 +131,7 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
           {/* Any (disable proximity) */}
           {(() => {
             const selected = isAnySelected
-            const common = 'px-3 py-1.5 text-xs rounded-full transition-colors transition-transform font-medium ripple ripple-rose active:scale-95'
+            const common = 'px-3 py-1.5 text-xs rounded-full transition-all duration-300 ease-out font-medium ripple ripple-rose active:scale-95 hover:scale-102'
             const cls = selected
               ? (isDark
                   ? `bg-rose-600/80 text-white border border-rose-500/40 ${common}`
@@ -126,9 +152,9 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
           })()}
 
           {/* Preset distances */}
-          {[2, 5, 10].map((km) => {
-            const selected = distanceRadiusKm === km
-            const common = 'px-3 py-1.5 text-xs rounded-full transition-colors transition-transform font-medium ripple ripple-rose active:scale-95'
+          {[2, 5, 10].map((km, index) => {
+            const selected = (showDistanceSelection && distanceRadiusKm === km) || (maskDistanceSelection && distanceRadiusKm === km)
+            const common = 'px-3 py-1.5 text-xs rounded-full transition-all duration-300 ease-out font-medium ripple ripple-rose active:scale-95 hover:scale-102'
             const cls = selected
               ? (isDark
                   ? `bg-rose-600/80 text-white border border-rose-500/40 ${common}`
@@ -142,6 +168,9 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
                 onClick={() => setDistanceRadiusKm && setDistanceRadiusKm(km)}
                 aria-pressed={selected}
                 className={cls}
+                style={{
+                  transitionDelay: `${(index + 1) * 75}ms`
+                }}
               >
                 {km} km
               </button>
@@ -151,7 +180,7 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
           {/* Custom radius button */}
           {(() => {
             const selected = isCustomSelected
-            const common = 'px-3 py-1.5 text-xs rounded-full transition-colors transition-transform font-medium ripple ripple-rose active:scale-95'
+            const common = 'px-3 py-1.5 text-xs rounded-full transition-all duration-300 ease-out font-medium ripple ripple-rose active:scale-95 hover:scale-102'
             const cls = selected
               ? (isDark
                   ? `bg-rose-600/80 text-white border border-rose-500/40 ${common}`

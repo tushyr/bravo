@@ -19,10 +19,12 @@ function App() {
   const [hasLocationPermission, setHasLocationPermission] = useState(false)
   const [userLocation, setUserLocation] = useState(null)
   const [distanceRadiusKm, setDistanceRadiusKm] = useState(null)
+  const [maskDistanceSelection, setMaskDistanceSelection] = useState(false)
   const [favorites, setFavorites] = useState(() => {
     const saved = localStorage.getItem('favorites')
     return saved ? JSON.parse(saved) : []
   })
+  const [favoritesOnly, setFavoritesOnly] = useState(false)
   const [notifications, setNotifications] = useState(() => {
     const saved = localStorage.getItem('notifications')
     const parsed = saved ? JSON.parse(saved) : []
@@ -268,7 +270,7 @@ function App() {
           })
 
           if (notificationsEnabled && 'Notification' in window && Notification.permission === 'granted') {
-            new Notification('BoozBuzz Reminder', { body: notificationText, icon: '/vite.svg' })
+            new Notification('ThekaBar Reminder', { body: notificationText, icon: '/tb_tab.png' })
           }
 
           setReminders(prev => prev.map(r => r.id === reminder.id ? { ...r, triggered: true } : r))
@@ -330,6 +332,11 @@ function App() {
       }
     }
 
+    // Favorites-only filter
+    if (favoritesOnly) {
+      filtered = filtered.filter(shop => favorites.includes(shop.id))
+    }
+
     // Proximity: always attach computed distance when userLocation exists.
     // If a radius is set, filter to within radius and sort by distance.
     if (userLocation) {
@@ -349,7 +356,7 @@ function App() {
     }
 
     setFilteredShops(filtered)
-  }, [shops, activeCategory, openNowFilter, searchQuery, userLocation, distanceRadiusKm])
+  }, [shops, activeCategory, openNowFilter, searchQuery, userLocation, distanceRadiusKm, favoritesOnly, favorites])
 
   // Randomize empty-state message when transitioning to empty results
   useEffect(() => {
@@ -493,17 +500,20 @@ function App() {
 
   // "Near Me" actions from SearchBar
   const handleNearMe = () => {
-    // If radius is Any, set to a quick nearby default, else open the modal
-    if (distanceRadiusKm == null) {
-      setDistanceRadiusKm(5)
-    } else if (openRadiusModalRef.current) {
-      openRadiusModalRef.current()
-    }
+    // Always apply fixed 8 km radius without opening modal
+    setDistanceRadiusKm(8)
+    setMaskDistanceSelection(true)
     try { window.scrollTo({ top: 0, behavior: 'smooth' }) } catch {}
   }
 
   const handleNearMeLongPress = () => {
     if (openRadiusModalRef.current) openRadiusModalRef.current()
+  }
+
+  // Wrap distance setter to unmask UI whenever user changes radius explicitly
+  const setDistanceKmMasked = (km) => {
+    setDistanceRadiusKm(km)
+    setMaskDistanceSelection(false)
   }
 
   return (
@@ -569,6 +579,7 @@ function App() {
               isDark={isDark}
               onNearMe={handleNearMe}
               onNearMeLongPress={handleNearMeLongPress}
+              isNearMeActive={maskDistanceSelection}
             />
             <CategoryChips 
               activeCategory={activeCategory}
@@ -578,8 +589,11 @@ function App() {
               onShowCityMap={handleShowCityMap}
               isDark={isDark}
               distanceRadiusKm={distanceRadiusKm}
-              setDistanceRadiusKm={setDistanceRadiusKm}
+              setDistanceRadiusKm={setDistanceKmMasked}
               bindOpenRadiusModal={bindOpenRadiusModal}
+              maskDistanceSelection={maskDistanceSelection}
+              favoritesOnly={favoritesOnly}
+              setFavoritesOnly={setFavoritesOnly}
             />
             
             <div className="px-4 py-4">
@@ -635,6 +649,9 @@ function App() {
           isOpen={showCityMap}
           onClose={closeCityMap}
           allShops={shops}
+          filteredShops={filteredShops}
+          activeCategory={activeCategory}
+          openNowFilter={openNowFilter}
           isDark={isDark}
         />
       </div>

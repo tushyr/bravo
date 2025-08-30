@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { LuX as X, LuMapPin as MapPin, LuStar as Star, LuNavigation as Navigation, LuFilter as Filter } from 'react-icons/lu'
+import { LuX as X, LuMapPin as MapPin } from 'react-icons/lu'
 
-const CityMap = ({ isOpen, onClose, allShops, isDark = false }) => {
+const CityMap = ({ isOpen, onClose, allShops, filteredShops, activeCategory, openNowFilter, isDark = false }) => {
   const modalRef = useRef(null)
 
   useEffect(() => {
@@ -60,10 +60,22 @@ const CityMap = ({ isOpen, onClose, allShops, isDark = false }) => {
   const bars = allShops.filter(shop => shop.type === 'bar')
   const premiumShops = allShops.filter(shop => shop.isPremium)
 
+  // Counts & filter pills
+  const totalCount = Array.isArray(allShops) ? allShops.length : 0
+  const visibleCount = Array.isArray(filteredShops) ? filteredShops.length : totalCount
+  const categoryLabelMap = {
+    all: 'All',
+    liquor_store: 'Shops',
+    bar: 'Bars',
+    premium: 'Premium'
+  }
+  const categoryLabel = categoryLabelMap?.[activeCategory] || 'All'
+  const showFiltersPill = (activeCategory && activeCategory !== 'all') || !!openNowFilter
+
   if (!isOpen) return null
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 md:p-4">
       {/* Backdrop */}
       <div className={isDark ? 'absolute inset-0 bg-black/80 backdrop-blur-sm' : 'absolute inset-0 bg-black/50 backdrop-blur-sm'} />
       
@@ -78,14 +90,27 @@ const CityMap = ({ isOpen, onClose, allShops, isDark = false }) => {
         aria-labelledby="city-map-title"
       >
         {/* Header */}
-        <div className={isDark ? 'flex items-center justify-between p-6 border-b border-white/10' : 'flex items-center justify-between p-6 border-b border-gray-200'}>
+        <div className={isDark ? 'flex items-center justify-between p-4 md:p-6 border-b border-white/10' : 'flex items-center justify-between p-4 md:p-6 border-b border-gray-200'}>
           <div>
             <h2 id="city-map-title" className={isDark ? 'text-2xl font-bold text-white' : 'text-2xl font-bold text-gray-900'}>
               Delhi Liquor & Bar Map
             </h2>
             <p className={isDark ? 'text-sm text-gray-400 mt-1' : 'text-sm text-gray-600 mt-1'}>
-              All {allShops.length} locations across the city
+              Showing {visibleCount} of {totalCount} locations across the city
             </p>
+            {showFiltersPill && (
+              <div className="mt-2">
+                <span className={isDark ? 'inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] text-gray-200' : 'inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-gray-100 border border-gray-200 text-[11px] text-gray-700'}>
+                  <span className={isDark ? 'text-rose-300' : 'text-purple-600'}>Filters</span>
+                  {activeCategory && activeCategory !== 'all' && (
+                    <span>{categoryLabel}</span>
+                  )}
+                  {openNowFilter && (
+                    <span>Open Now</span>
+                  )}
+                </span>
+              </div>
+            )}
           </div>
           <button
             onClick={onClose}
@@ -98,116 +123,70 @@ const CityMap = ({ isOpen, onClose, allShops, isDark = false }) => {
           </button>
         </div>
 
-        {/* Content */}
-        <div className="flex h-[calc(95vh-120px)]">
-          {/* Left Sidebar - Stats & Filters */}
-          <div className={isDark ? 'w-80 border-r border-white/10 p-6 overflow-y-auto' : 'w-80 border-r border-gray-200 p-6 overflow-y-auto'}>
-            <div className="space-y-6">
-              {/* Quick Stats */}
-              <div>
-                <h3 className={isDark ? 'text-lg font-semibold text-white mb-4' : 'text-lg font-semibold text-gray-900 mb-4'}>
-                  Quick Stats
-                </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className={isDark ? 'bg-neutral-800 rounded-xl p-3 border border-white/10' : 'bg-gray-50 rounded-xl p-3 border border-gray-200'}>
-                    <div className={isDark ? 'text-green-400 text-2xl font-bold' : 'text-green-600 text-2xl font-bold'}>
-                      {openShops.length}
-                    </div>
-                    <div className={isDark ? 'text-gray-400 text-xs' : 'text-gray-600 text-xs'}>Open Now</div>
-                  </div>
-                  <div className={isDark ? 'bg-neutral-800 rounded-xl p-3 border border-white/10' : 'bg-gray-50 rounded-xl p-3 border border-gray-200'}>
-                    <div className={isDark ? 'text-rose-400 text-2xl font-bold' : 'text-red-600 text-2xl font-bold'}>
-                      {closedShops.length}
-                    </div>
-                    <div className={isDark ? 'text-gray-400 text-xs' : 'text-gray-600 text-xs'}>Closed</div>
-                  </div>
-                  <div className={isDark ? 'bg-neutral-800 rounded-xl p-3 border border-white/10' : 'bg-gray-50 rounded-xl p-3 border border-gray-200'}>
-                    <div className={isDark ? 'text-blue-400 text-2xl font-bold' : 'text-blue-600 text-2xl font-bold'}>
-                      {liquorStores.length}
-                    </div>
-                    <div className={isDark ? 'text-gray-400 text-xs' : 'text-gray-600 text-xs'}>Liquor Stores</div>
-                  </div>
-                  <div className={isDark ? 'bg-neutral-800 rounded-xl p-3 border border-white/10' : 'bg-gray-50 rounded-xl p-3 border border-gray-200'}>
-                    <div className={isDark ? 'text-purple-400 text-2xl font-bold' : 'text-purple-600 text-2xl font-bold'}>
-                      {bars.length}
-                    </div>
-                    <div className={isDark ? 'text-gray-400 text-xs' : 'text-gray-600 text-xs'}>Bars</div>
-                  </div>
-                </div>
+        {/* Content: Full-width Map Area */}
+        <div className="h-[calc(95vh-100px)] md:h-[calc(95vh-120px)] p-3 md:p-6">
+          <div className={isDark 
+            ? 'h-full bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 rounded-xl md:rounded-2xl border border-white/5 relative overflow-hidden'
+            : 'h-full bg-gradient-to-br from-gray-50 via-white to-gray-100 rounded-xl md:rounded-2xl border border-gray-200 relative overflow-hidden'}>
+            
+            {/* Background pattern/texture */}
+            {isDark && (
+              <div className="absolute inset-0 opacity-30">
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-rose-900/10 via-transparent to-red-900/5"></div>
+                <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-rose-600/5 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-1/3 left-1/3 w-48 h-48 bg-red-500/5 rounded-full blur-2xl"></div>
               </div>
-
-              {/* Premium Locations */}
-              <div>
-                <h3 className={isDark ? 'text-lg font-semibold text-white mb-3' : 'text-lg font-semibold text-gray-900 mb-3'}>
-                  👑 Premium Locations ({premiumShops.length})
-                </h3>
-                <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {premiumShops.slice(0, 5).map(shop => (
-                    <div
-                      key={shop.id}
-                      className={isDark 
-                        ? 'bg-neutral-800 rounded-lg p-3 border border-white/10'
-                        : 'bg-gray-50 rounded-lg p-3 border border-gray-200'}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <h4 className={isDark ? 'font-medium text-white text-sm' : 'font-medium text-gray-900 text-sm'}>
-                            {shop.name}
-                          </h4>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
-                              isShopOpen(shop)
-                                ? (isDark ? 'bg-green-600/70 text-white' : 'bg-green-600/70 text-white')
-                                : (isDark ? 'bg-rose-600/70 text-white' : 'bg-red-600/70 text-white')
-                            }`}>
-                              {getStatusText(shop)}
-                            </span>
-                            <span className={isDark ? 'text-gray-400 text-xs' : 'text-gray-600 text-xs'}>
-                              {shop.area}
-                            </span>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => openInMaps(shop)}
-                          className={isDark 
-                            ? 'p-1.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-colors'
-                            : 'p-1.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-colors'}
-                          title="Get directions"
-                        >
-                          <Navigation className="h-3 w-3" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Side - Map Area */}
-          <div className="flex-1 p-6">
-            {/* Placeholder for future map integration */}
+            )}
+            
+            {/* Grid pattern */}
             <div className={isDark 
-              ? 'h-full bg-neutral-800 rounded-2xl border border-white/10 flex items-center justify-center'
-              : 'h-full bg-gray-100 rounded-2xl border border-gray-200 flex items-center justify-center'}>
-              <div className="text-center">
-                <MapPin className={isDark ? 'h-16 w-16 text-gray-500 mx-auto mb-4' : 'h-16 w-16 text-gray-400 mx-auto mb-4'} />
-                <h3 className={isDark ? 'text-xl font-semibold text-white mb-2' : 'text-xl font-semibold text-gray-900 mb-2'}>
+              ? 'absolute inset-0 opacity-[0.02] bg-[radial-gradient(circle_at_1px_1px,_white_1px,_transparent_0)] bg-[length:24px_24px]'
+              : 'absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_1px_1px,_gray_1px,_transparent_0)] bg-[length:24px_24px]'}></div>
+            
+            {/* Content */}
+            <div className="relative z-10 h-full flex items-center justify-center">
+              <div className="text-center max-w-lg">
+                {/* Icon with glow effect */}
+                <div className="relative mb-4 md:mb-6">
+                  <div className={isDark ? 'absolute inset-0 bg-rose-500/20 rounded-full blur-xl' : 'absolute inset-0 bg-purple-500/20 rounded-full blur-xl'}></div>
+                  <div className={isDark 
+                    ? 'relative w-16 h-16 md:w-20 md:h-20 mx-auto bg-gradient-to-br from-rose-600/80 to-red-700/80 rounded-2xl flex items-center justify-center border border-rose-500/30'
+                    : 'relative w-16 h-16 md:w-20 md:h-20 mx-auto bg-gradient-to-br from-purple-600/80 to-blue-700/80 rounded-2xl flex items-center justify-center border border-purple-500/30'}>
+                    <MapPin className="h-8 w-8 md:h-10 md:w-10 text-white" />
+                  </div>
+                </div>
+                
+                <h3 className={isDark ? 'text-xl md:text-2xl font-bold text-white mb-3 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent' : 'text-xl md:text-2xl font-bold text-gray-900 mb-3'}>
                   Interactive City Map
                 </h3>
-                <p className={isDark ? 'text-gray-400 text-sm mb-4' : 'text-gray-600 text-sm mb-4'}>
-                  Full Delhi map with all {allShops.length} locations coming soon
+                
+                <p className={isDark ? 'text-gray-400 text-sm md:text-base mb-5 md:mb-6 leading-relaxed' : 'text-gray-600 text-sm md:text-base mb-5 md:mb-6 leading-relaxed'}>
+                  Explore all <span className={isDark ? 'text-rose-400 font-semibold' : 'text-purple-600 font-semibold'}>{allShops.length}</span> locations across Delhi with our interactive map experience
                 </p>
-                <div className="space-y-2 text-sm">
-                  <p className={isDark ? 'text-gray-500' : 'text-gray-500'}>
-                    • Real-time open/closed status
-                  </p>
-                  <p className={isDark ? 'text-gray-500' : 'text-gray-500'}>
-                    • Cluster view for dense areas
-                  </p>
-                  <p className={isDark ? 'text-gray-500' : 'text-gray-500'}>
-                    • Filter by type, distance & ratings
-                  </p>
+                
+                {/* Feature list */}
+                <div className="space-y-3 text-sm">
+                  <div className={isDark ? 'flex items-center justify-center gap-3 text-gray-300' : 'flex items-center justify-center gap-3 text-gray-600'}>
+                    <div className={isDark ? 'w-1.5 h-1.5 bg-rose-500 rounded-full' : 'w-1.5 h-1.5 bg-purple-500 rounded-full'}></div>
+                    <span>Real-time open/closed status</span>
+                  </div>
+                  <div className={isDark ? 'flex items-center justify-center gap-3 text-gray-300' : 'flex items-center justify-center gap-3 text-gray-600'}>
+                    <div className={isDark ? 'w-1.5 h-1.5 bg-rose-500 rounded-full' : 'w-1.5 h-1.5 bg-purple-500 rounded-full'}></div>
+                    <span>Smart clustering for dense areas</span>
+                  </div>
+                  <div className={isDark ? 'flex items-center justify-center gap-3 text-gray-300' : 'flex items-center justify-center gap-3 text-gray-600'}>
+                    <div className={isDark ? 'w-1.5 h-1.5 bg-rose-500 rounded-full' : 'w-1.5 h-1.5 bg-purple-500 rounded-full'}></div>
+                    <span>Advanced filtering & search</span>
+                  </div>
+                </div>
+                
+                {/* Coming soon badge */}
+                <div className="mt-6 md:mt-8">
+                  <span className={isDark 
+                    ? 'inline-flex items-center px-4 py-2 rounded-full text-xs font-medium bg-gradient-to-r from-rose-600/20 to-red-600/20 text-rose-300 border border-rose-500/30'
+                    : 'inline-flex items-center px-4 py-2 rounded-full text-xs font-medium bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-700 border border-purple-500/30'}>
+                    Coming Soon
+                  </span>
                 </div>
               </div>
             </div>
