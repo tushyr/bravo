@@ -121,11 +121,11 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
   }
 
   return (
-    <div className={`${isLoading ? 'card-shimmer' : ''} ${getThemedCardStyle()}`}>
-      <div className="p-5">
+    <div className={`${isLoading ? 'card-shimmer' : ''} ${getThemedCardStyle()} h-full`}>
+      <div className="p-[18px] lg:p-[17px] flex flex-col h-full min-h-[176px] lg:min-h-[172px]">
         {/* Header with name and actions */}
         <div className="flex items-start justify-between mb-4">
-          <h3 className={isDark ? 'text-lg font-bold text-white leading-tight' : 'text-lg font-bold text-gray-900 leading-tight'}>{shop.name}</h3>
+          <h3 className={isDark ? 'text-[17px] lg:text-[16.5px] font-semibold text-white leading-tight lg-clamp-1' : 'text-[17px] lg:text-[16.5px] font-semibold text-gray-900 leading-tight lg-clamp-1'}>{shop.name}</h3>
           <div className="flex items-center gap-2 relative z-50">
             <button
               ref={buttonRef}
@@ -345,7 +345,7 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
         </div>
 
         {/* Location and rating */}
-        <div className={isDark ? 'flex items-center space-x-3 text-sm text-gray-300 mb-3' : 'flex items-center space-x-3 text-sm text-gray-600 mb-3'}>
+        <div className={isDark ? 'flex items-center space-x-3 text-[13px] lg:text-[12.5px] text-gray-300 mb-3' : 'flex items-center space-x-3 text-[13px] lg:text-[12.5px] text-gray-600 mb-3'}>
           <div className="flex items-center gap-1.5">
             <MapPin className={isDark ? 'h-4 w-4 text-rose-400' : 'h-4 w-4 text-purple-600'} />
             <span className="font-medium">{shop.area}</span>
@@ -358,8 +358,8 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
             <span
               title="Distance from you"
               className={isDark
-                ? 'px-2 py-0.5 rounded-md border border-white/15 text-gray-200 text-[10px] font-light'
-                : 'px-2 py-0.5 rounded-md border border-gray-300 text-gray-700 text-[10px] font-light'}
+                ? 'px-2 py-0.5 rounded-md border border-white/15 text-gray-200 text-[10px] tracking-wide font-light'
+                : 'px-2 py-0.5 rounded-md border border-gray-300 text-gray-700 text-[10px] tracking-wide font-light'}
             >
               {distanceText}
             </span>
@@ -368,10 +368,10 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
         </div>
 
         {/* Address */}
-        <p className={isDark ? 'text-sm text-gray-300 mb-2.5' : 'text-sm text-gray-700 mb-2.5'}>{shop.address}</p>
+        <p className={isDark ? 'text-[13px] lg:text-[12.5px] text-gray-300 mb-2.5 leading-snug lg-clamp-2' : 'text-[13px] lg:text-[12.5px] text-gray-700 mb-2.5 leading-snug lg-clamp-2'}>{shop.address}</p>
 
         {/* Speciality */}
-        <p className={isDark ? 'text-xs text-gray-400' : 'text-xs text-gray-600'}>{shop.speciality}</p>
+        <p className={isDark ? 'text-[11px] lg:text-[10.5px] text-gray-400 leading-snug lg-clamp-1' : 'text-[11px] lg:text-[10.5px] text-gray-600 leading-snug lg-clamp-1'}>{shop.speciality}</p>
       </div>
     </div>
   )

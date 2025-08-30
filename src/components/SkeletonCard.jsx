@@ -1,6 +1,6 @@
 const SkeletonCard = ({ isDark = false }) => {
   return (
-    <div className={`card-shimmer ${isDark ? 'bg-white/5 backdrop-blur-lg rounded-3xl shadow-lg' : 'bg-white/25 backdrop-blur-lg rounded-3xl shadow-md ring-1 ring-white/40'}`}>
+    <div className={`card-shimmer h-full ${isDark ? 'bg-white/5 backdrop-blur-lg rounded-3xl shadow-lg' : 'bg-white/25 backdrop-blur-lg rounded-3xl shadow-md ring-1 ring-white/40'}`}>
       <div className="p-5">
         {/* Header with name and favorite */}
         <div className="flex items-start justify-between mb-4">

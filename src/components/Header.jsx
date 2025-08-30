@@ -11,7 +11,7 @@ const Header = ({ isDark = false, notificationsEnabled = false, onToggleNotifica
 
   return (
     <header className="bg-transparent">
-      <div className="container mx-auto px-4 py-4">
+      <div className="px-4 py-4">
         <div className={isDark ? 'relative overflow-hidden bg-white/5 backdrop-blur-lg ring-1 ring-white/10 rounded-3xl shadow-lg px-4 py-3' : 'relative overflow-hidden bg-white/25 backdrop-blur-lg ring-1 ring-white/40 rounded-3xl shadow-lg px-4 py-3'}>
           <div className="absolute inset-0 header-ambient rounded-3xl" aria-hidden="true" />
           <div className="relative flex items-center justify-between">

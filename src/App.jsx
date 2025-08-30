@@ -127,7 +127,7 @@ function App() {
                 lng: position.coords.longitude
               })
               setHasLocationPermission(true)
-              setDistanceRadiusKm(10)
+              setDistanceRadiusKm(null)
               loadShopsData()
             },
             () => {
@@ -148,20 +148,31 @@ function App() {
     checkLocationPermission()
   }, [])
 
-  // Load shops data (simulate API call)
+  // Load shops data (try API, fallback to mock)
   const loadShopsData = async () => {
     setIsLoading(true)
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    setShops(mockShops)
-    setIsLoading(false)
+    const controller = new AbortController()
+    const t = setTimeout(() => controller.abort(), 6000)
+    try {
+      const res = await fetch('/api/shops', { signal: controller.signal })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data = await res.json()
+      const incoming = Array.isArray(data?.shops) ? data.shops : []
+      setShops(incoming.length ? incoming : mockShops)
+    } catch (e) {
+      // Fallback to local mock data on any failure
+      setShops(mockShops)
+    } finally {
+      clearTimeout(t)
+      setIsLoading(false)
+    }
   }
 
   // Handle location permission granted
   const handleLocationEnabled = (location) => {
     setUserLocation(location)
     setHasLocationPermission(true)
-    setDistanceRadiusKm(10)
+    setDistanceRadiusKm(null)
     loadShopsData()
   }
 
@@ -383,12 +394,28 @@ function App() {
     )
   }
 
-  const updateShopStatus = (shopId, isOpen) => {
-    setShops(prev => prev.map(shop => 
-      shop.id === shopId 
+  const updateShopStatus = async (shopId, isOpen) => {
+    // Optimistic update
+    setShops(prev => prev.map(shop =>
+      shop.id === shopId
         ? { ...shop, userReported: isOpen ? 'open' : 'closed' }
         : shop
     ))
+    try {
+      const res = await fetch(`/api/shops/${shopId}/report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isOpen })
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    } catch (e) {
+      // Revert on failure
+      setShops(prev => prev.map(shop =>
+        shop.id === shopId
+          ? { ...shop, userReported: null }
+          : shop
+      ))
+    }
   }
 
   const dismissNotification = (id) => {
@@ -517,7 +544,7 @@ function App() {
   }
 
   return (
-    <div className={isDark ? 'min-h-screen bg-black text-gray-100 relative overflow-hidden' : 'min-h-screen bg-gradient-to-br from-purple-400 via-pink-300 to-blue-400 relative overflow-hidden'}>
+    <div className={isDark ? 'app-scroll bg-black text-gray-100 relative overflow-x-hidden' : 'app-scroll bg-gradient-to-br from-purple-400 via-pink-300 to-blue-400 relative overflow-x-hidden'}>
       {isDark && (
         <div aria-hidden className="absolute inset-0 z-0 pointer-events-none transition-all duration-1000 ease-in-out">
           {/* Dynamic themed gradients based on active category */}
@@ -597,7 +624,7 @@ function App() {
             />
             
             <div className="px-4 py-4">
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 gap-y-3 gap-x-0 lg:grid-cols-3 xl:grid-cols-4 lg:gap-6">
                 {isLoading ? (
                   // Show skeleton cards while loading
                   Array.from({ length: 6 }, (_, index) => (
