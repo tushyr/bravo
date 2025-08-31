@@ -1,0 +1,7 @@
+# robots.txt for ThekaBar
+# Update the Sitemap URL to your production domain after deploy.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://YOUR_DOMAIN/sitemap.xml
