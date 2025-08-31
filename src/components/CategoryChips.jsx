@@ -9,6 +9,10 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
     { id: 'premium', label: '👑 Premium' }
   ]
 
+  // Distance slider bounds tuned for Delhi NCR coverage
+  const MIN_RADIUS_KM = 0.5
+  const MAX_RADIUS_KM = 150
+
   // Bottom sheet state for custom radius
   const [showRadiusSheet, setShowRadiusSheet] = useState(false)
   const [tempRadius, setTempRadius] = useState(distanceRadiusKm || 10)
@@ -16,7 +20,7 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
   // When maskDistanceSelection is true, do not highlight any distance chip in the UI
   const showDistanceSelection = !maskDistanceSelection
   const uiDistance = showDistanceSelection ? distanceRadiusKm : undefined
-  const isCustomSelected = showDistanceSelection && typeof distanceRadiusKm === 'number' && ![2, 5, 10].includes(distanceRadiusKm)
+  const isCustomSelected = showDistanceSelection && typeof distanceRadiusKm === 'number' && ![5, 10, 50].includes(distanceRadiusKm)
   const isAnySelected = showDistanceSelection && (distanceRadiusKm == null)
 
   // Dynamic noun for modal text based on current category
@@ -54,7 +58,7 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
   return (
     <div className="px-4 py-3">
       {/* Open Now Button & City Map */}
-      <div className="mb-3 flex items-center gap-2">
+      <div className="mb-3 flex flex-wrap items-center gap-2 lg:gap-3">
         <button
           onClick={() => setOpenNowFilter(!openNowFilter)}
           className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors transition-transform glow-rose ripple ripple-rose active:scale-95 ${
@@ -95,19 +99,19 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
       </div>
 
       {/* Category Chips */}
-      <div className="flex space-x-2 overflow-x-auto no-scrollbar pb-0.5">
+      <div className="flex gap-2 overflow-x-auto no-scrollbar whitespace-nowrap px-1 py-1 overscroll-contain lg:flex-wrap lg:whitespace-normal lg:overflow-visible">
         {categories.map((category, index) => (
           <button
             key={category.id}
             onClick={() => setActiveCategory(category.id)}
-            className={`px-3.5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-500 ease-out ripple ripple-rose active:scale-95 ${
+            className={`px-3.5 py-1.5 lg:px-4 lg:py-2 rounded-full text-[13px] lg:text-sm font-medium whitespace-nowrap transition-all duration-300 ease-out ripple ripple-rose active:scale-95 ${
               activeCategory === category.id
                 ? (isDark
-                    ? 'bg-rose-600/80 text-white border border-rose-500/40 shadow-lg shadow-rose-500/25 scale-105'
-                    : 'bg-purple-600 text-white border border-purple-700/40 shadow-lg shadow-purple-500/25 scale-105')
+                    ? 'bg-rose-600/85 text-white border border-rose-500/40 shadow-none'
+                    : 'bg-purple-600 text-white border border-purple-700/40 shadow-none')
                 : (isDark
-                    ? 'bg-white/5 backdrop-blur-md text-gray-200 border border-white/20 hover:bg-white/10 hover:scale-102'
-                    : 'bg-transparent text-gray-800 border border-gray-300 hover:bg-gray-50 hover:scale-102')
+                    ? 'bg-white/5 backdrop-blur-md text-gray-200 border border-white/20 hover:bg-white/10'
+                    : 'bg-transparent text-gray-800 border border-gray-300 hover:bg-gray-50')
             }`}
             style={{
               transitionDelay: `${index * 50}ms`,
@@ -115,11 +119,6 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
             }}
           >
             <span className="relative z-10">{category.label}</span>
-            {activeCategory === category.id && (
-              <div className={`absolute inset-0 rounded-full animate-pulse ${
-                isDark ? 'bg-rose-500/20' : 'bg-purple-500/20'
-              }`} style={{ animationDuration: '2s' }} />
-            )}
           </button>
         ))}
       </div>
@@ -127,11 +126,11 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
       {/* Distance Chips */}
       <div className="mt-3">
         <div className={isDark ? 'text-gray-300 text-xs mb-2 font-medium' : 'text-gray-800 text-xs mb-2 font-medium'}>Distance</div>
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5 lg:gap-2">
           {/* Any (disable proximity) */}
           {(() => {
             const selected = isAnySelected
-            const common = 'px-3 py-1.5 text-xs rounded-full transition-all duration-300 ease-out font-medium ripple ripple-rose active:scale-95 hover:scale-102'
+            const common = 'px-3 py-1.5 text-xs lg:px-3.5 lg:py-1.5 lg:text-[13px] rounded-full transition-all duration-300 ease-out font-medium ripple ripple-rose active:scale-95 hover:scale-102'
             const cls = selected
               ? (isDark
                   ? `bg-rose-600/80 text-white border border-rose-500/40 ${common}`
@@ -152,9 +151,9 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
           })()}
 
           {/* Preset distances */}
-          {[2, 5, 10].map((km, index) => {
+          {[5, 10, 50].map((km, index) => {
             const selected = (showDistanceSelection && distanceRadiusKm === km) || (maskDistanceSelection && distanceRadiusKm === km)
-            const common = 'px-3 py-1.5 text-xs rounded-full transition-all duration-300 ease-out font-medium ripple ripple-rose active:scale-95 hover:scale-102'
+            const common = 'px-3 py-1.5 text-xs lg:px-3.5 lg:py-1.5 lg:text-[13px] rounded-full transition-all duration-300 ease-out font-medium ripple ripple-rose active:scale-95 hover:scale-102'
             const cls = selected
               ? (isDark
                   ? `bg-rose-600/80 text-white border border-rose-500/40 ${common}`
@@ -180,7 +179,7 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
           {/* Custom radius button */}
           {(() => {
             const selected = isCustomSelected
-            const common = 'px-3 py-1.5 text-xs rounded-full transition-all duration-300 ease-out font-medium ripple ripple-rose active:scale-95 hover:scale-102'
+            const common = 'px-3 py-1.5 text-xs lg:px-3.5 lg:py-1.5 lg:text-[13px] rounded-full transition-all duration-300 ease-out font-medium ripple ripple-rose active:scale-95 hover:scale-102'
             const cls = selected
               ? (isDark
                   ? `bg-rose-600/80 text-white border border-rose-500/40 ${common}`
@@ -235,8 +234,8 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
               <div className="relative">
                 <input
                   type="range"
-                  min="0.5"
-                  max="50"
+                  min={MIN_RADIUS_KM}
+                  max={MAX_RADIUS_KM}
                   step="0.5"
                   value={tempRadius}
                   onChange={(e) => setTempRadius(parseFloat(e.target.value))}
@@ -245,8 +244,8 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
                 />
                 {/* Range labels */}
                 <div className="flex justify-between text-[11px] mt-2">
-                  <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>0.5 km</span>
-                  <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>50 km</span>
+                  <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>{MIN_RADIUS_KM} km</span>
+                  <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>{MAX_RADIUS_KM} km</span>
                 </div>
               </div>
             </div>

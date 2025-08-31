@@ -124,7 +124,7 @@ const CityMap = ({ isOpen, onClose, allShops, filteredShops, activeCategory, ope
         </div>
 
         {/* Content: Full-width Map Area */}
-        <div className="h-[calc(95vh-100px)] md:h-[calc(95vh-120px)] p-3 md:p-6">
+        <div className="h-[calc(95vh-100px)] md:h-[calc(95vh-120px)] p-3 md:p-6 safe-area-bottom no-scrollbar">
           <div className={isDark 
             ? 'h-full bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 rounded-xl md:rounded-2xl border border-white/5 relative overflow-hidden'
             : 'h-full bg-gradient-to-br from-gray-50 via-white to-gray-100 rounded-xl md:rounded-2xl border border-gray-200 relative overflow-hidden'}>

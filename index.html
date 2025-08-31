@@ -2,15 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/tb_tab.svg?v=2" />
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" sizes="180x180" />
-    <link rel="mask-icon" href="/tb_tab.svg" color="#ea580c" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/tb_tab.svg?v=2" data-vite-ignore />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" sizes="180x180" data-vite-ignore />
+    <link rel="mask-icon" href="/tb_tab.svg" color="#ea580c" data-vite-ignore />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
     <meta name="theme-color" content="#ea580c" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="ThekaBar" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="manifest" href="/manifest.json" />
+    <link rel="manifest" href="/manifest.json" data-vite-ignore />
     <title>ThekaBar - Find Open Shops & Bars</title>
     <meta name="description" content="Find open liquor shops and bars in Delhi NCR with real-time status updates" />
     <meta name="robots" content="index, follow" />
@@ -20,17 +21,53 @@
     <meta property="og:type" content="website" />
     <meta property="og:title" content="ThekaBar - Find Open Shops & Bars" />
     <meta property="og:description" content="Find open liquor shops and bars in Delhi NCR with real-time status updates" />
-    <meta property="og:image" content="/og-image.png" />
+    <!-- og:image is injected at runtime -->
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="ThekaBar – Find open liquor shops and bars in Delhi NCR" />
     <meta property="og:locale" content="en_IN" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="ThekaBar - Find Open Shops & Bars" />
     <meta name="twitter:description" content="Find open liquor shops and bars in Delhi NCR with real-time status updates" />
-    <meta name="twitter:image" content="/og-image.png" />
+    <!-- twitter:image is injected at runtime -->
+    <meta name="twitter:image:alt" content="ThekaBar – Find open liquor shops and bars in Delhi NCR" />
+
+    <!-- Canonical is set dynamically in the script below to avoid Vite build processing of '/' -->
+    
+    <!-- Inline minimal CSS to prevent white flashes before app CSS loads -->
+    <style>
+      html, body, #root { height: 100%; background: #000; }
+      body { margin: 0; overscroll-behavior-y: none; }
+    </style>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Prevent pinch/double-tap zoom in standalone (installed PWA) only
+      (function () {
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        if (!isStandalone) return;
+
+        let lastTouchEnd = 0;
+        const opts = { passive: false };
+
+        // Block iOS gesture pinch zoom
+        ['gesturestart', 'gesturechange', 'gestureend'].forEach(type => {
+          document.addEventListener(type, e => e.preventDefault(), opts);
+        });
+
+        // Block double-tap zoom
+        document.addEventListener('touchend', function (e) {
+          const now = Date.now();
+          if (now - lastTouchEnd <= 300) {
+            e.preventDefault();
+          }
+          lastTouchEnd = now;
+        }, opts);
+      })();
+    </script>
   </body>
 </html>

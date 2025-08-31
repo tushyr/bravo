@@ -2,6 +2,68 @@
 @tailwind components;
 @tailwind utilities;
 
+/* App-like, fixed feel across iOS/Android/Desktop */
+html, body { height: 100%; background: #000; }
+body {
+  margin: 0;
+  overscroll-behavior-y: none;
+  overscroll-behavior-x: none;
+  /* Improve iOS rendering */
+  -webkit-font-smoothing: antialiased;
+}
+#root { min-height: 100dvh; background: #000; }
+
+/* Reduce accidental zooming in PWA: allow panning but not pinch/double-tap */
+html, body {
+  touch-action: pan-x pan-y;
+  /* Prevent horizontal scrollbars globally */
+  overflow-x: hidden;
+  /* Hide scrollbars where the root scrolls (Firefox/IE/Edge Legacy) */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge Legacy */
+}
+/* Hide scrollbars on root in WebKit browsers (Chrome/Safari/Edge) */
+html::-webkit-scrollbar, body::-webkit-scrollbar { width: 0; height: 0; }
+/* Avoid iOS input focus zoom by ensuring minimum 16px font */
+input, select, textarea {
+  font-size: 16px;
+}
+.app-scroll {
+  /* Use dynamic/small viewport height where supported */
+  min-height: 100dvh;
+  height: 100dvh;
+  min-height: 100svh;
+  height: 100svh;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden; /* ensure no horizontal bar even if inner content overflows */
+  -webkit-overflow-scrolling: touch;
+  background: #000;
+  overscroll-behavior-y: contain;
+  /* Respect iOS safe areas (notch/dynamic island & home indicator) */
+  padding-top: max(0px, env(safe-area-inset-top));
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  padding-left: max(0px, env(safe-area-inset-left));
+  padding-right: max(0px, env(safe-area-inset-right));
+  /* Older iOS fallback */
+  padding-top: max(0px, constant(safe-area-inset-top));
+  padding-bottom: max(12px, constant(safe-area-inset-bottom));
+  padding-left: constant(safe-area-inset-left);
+  padding-right: constant(safe-area-inset-right);
+  /* Hide scrollbars for the main scroller */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge Legacy */
+}
+.app-scroll::-webkit-scrollbar { width: 0; height: 0; }
+
+/* Utility: add bottom spacer equal to iOS safe area without overriding existing padding */
+.safe-area-bottom::after {
+  content: "";
+  display: block;
+  height: max(0px, env(safe-area-inset-bottom));
+  height: constant(safe-area-inset-bottom);
+}
+
 /* Hide scrollbars utility */
 /* For Chrome, Safari and Opera */
 .no-scrollbar::-webkit-scrollbar {
@@ -239,3 +301,21 @@
 .reduce-motion .animate-fade-slide-in { animation: none; }
 .reduce-motion .animate-float { animation: none; }
 .reduce-motion .animate-slide-up { animation: none; }
+
+/* Desktop-only line clamp helpers */
+@media (min-width: 1024px) {
+  .lg-clamp-1 {
+    display: -webkit-box;
+    line-clamp: 1;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .lg-clamp-2 {
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}

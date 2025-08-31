@@ -97,7 +97,7 @@ const NearbyMap = ({ isOpen, onClose, centerShop, allShops, isDark = false }) =>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)] safe-area-bottom no-scrollbar">
           {/* Placeholder for future map integration */}
           <div className={isDark 
             ? 'h-64 bg-neutral-800 rounded-2xl border border-white/10 flex items-center justify-center mb-6'
