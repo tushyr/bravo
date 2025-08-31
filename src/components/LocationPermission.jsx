@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { LuMapPin as MapPin } from 'react-icons/lu'
+import { haptics } from '../utils/haptics'
 
 const LocationPermission = ({ isDark = false, onLocationEnabled }) => {
   const sassyMessages = [
@@ -22,6 +23,10 @@ const LocationPermission = ({ isDark = false, onLocationEnabled }) => {
 
   const handleEnableLocation = async () => {
     try {
+      haptics.heavy() // Heavy vibration for important permission action
+    } catch {}
+    
+    try {
       const position = await new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
           enableHighAccuracy: true,
@@ -30,12 +35,19 @@ const LocationPermission = ({ isDark = false, onLocationEnabled }) => {
         })
       })
       
+      try {
+        haptics.success() // Success pattern when location is granted
+      } catch {}
+      
       onLocationEnabled({
         lat: position.coords.latitude,
         lng: position.coords.longitude
       })
     } catch (error) {
       console.error('Location permission denied:', error)
+      try {
+        haptics.error() // Error pattern when denied
+      } catch {}
       // Pick a random new message on denial/failure (no immediate repeats)
       setCurrentMessageIndex((prev) => getRandomDifferentIndex(prev))
     }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { LuClock as Clock, LuMap as Map, LuHeart as Heart } from 'react-icons/lu'
+import { haptics } from '../utils/haptics'
 
 const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOpenNowFilter, onShowCityMap, isDark = false, distanceRadiusKm, setDistanceRadiusKm, bindOpenRadiusModal, maskDistanceSelection = false, favoritesOnly = false, setFavoritesOnly }) => {
   const categories = [
@@ -60,7 +61,11 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
       {/* Open Now Button & City Map */}
       <div className="mb-3 flex flex-wrap items-center gap-2 lg:gap-3">
         <button
-          onClick={() => setOpenNowFilter(!openNowFilter)}
+          onClick={() => {
+            const next = !openNowFilter
+            setOpenNowFilter(next)
+            try { haptics.toggle(next) } catch {}
+          }}
           className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors transition-transform glow-rose ripple ripple-rose active:scale-95 ${
             openNowFilter
               ? (isDark
@@ -76,7 +81,12 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
         </button>
         
         <button
-          onClick={() => onShowCityMap && onShowCityMap()}
+          onClick={() => {
+            try {
+              haptics.light() // Light haptic for map view
+            } catch {}
+            onShowCityMap && onShowCityMap()
+          }}
           className={isDark
             ? 'inline-flex items-center px-3.5 py-1.5 rounded-full text-sm font-medium bg-white/5 backdrop-blur-md text-blue-400 border border-white/20 hover:bg-white/10 transition-colors transition-transform ripple ripple-rose active:scale-95'
             : 'inline-flex items-center px-3.5 py-1.5 rounded-full text-sm font-medium bg-transparent text-blue-600 border border-gray-300 hover:bg-gray-50 transition-colors transition-transform ripple ripple-rose active:scale-95'}
@@ -86,7 +96,12 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
           City Map
         </button>
         <button
-          onClick={() => setFavoritesOnly && setFavoritesOnly(!favoritesOnly)}
+          onClick={() => {
+            if (!setFavoritesOnly) return
+            const next = !favoritesOnly
+            setFavoritesOnly(next)
+            try { haptics.toggle(next) } catch {}
+          }}
           className={isDark
             ? `inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium ${favoritesOnly ? 'bg-rose-600/80 text-white border border-rose-500/40' : 'bg-white/5 backdrop-blur-md text-gray-200 border border-white/20 hover:bg-white/10'} transition-colors transition-transform ripple ripple-rose active:scale-95`
             : `inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium ${favoritesOnly ? 'bg-purple-600 text-white border border-purple-700/40' : 'bg-transparent text-gray-800 border border-gray-300 hover:bg-gray-50'} transition-colors transition-transform ripple ripple-rose active:scale-95`}
@@ -103,7 +118,7 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
         {categories.map((category, index) => (
           <button
             key={category.id}
-            onClick={() => setActiveCategory(category.id)}
+            onClick={() => { try { haptics.selection() } catch {}; setActiveCategory(category.id) }}
             className={`px-3.5 py-1.5 lg:px-4 lg:py-2 rounded-full text-[13px] lg:text-sm font-medium whitespace-nowrap transition-all duration-300 ease-out ripple ripple-rose active:scale-95 ${
               activeCategory === category.id
                 ? (isDark
@@ -141,7 +156,7 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
             return (
               <button
                 key="any"
-                onClick={() => setDistanceRadiusKm && setDistanceRadiusKm(null)}
+                onClick={() => { try { haptics.selection() } catch {}; setDistanceRadiusKm && setDistanceRadiusKm(null) }}
                 aria-pressed={selected}
                 className={cls}
               >
@@ -164,7 +179,7 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
             return (
               <button
                 key={km}
-                onClick={() => setDistanceRadiusKm && setDistanceRadiusKm(km)}
+                onClick={() => { try { haptics.selection() } catch {}; setDistanceRadiusKm && setDistanceRadiusKm(km) }}
                 aria-pressed={selected}
                 className={cls}
                 style={{
@@ -193,6 +208,7 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
                 onClick={() => {
                   setTempRadius(distanceRadiusKm || 10)
                   setShowRadiusSheet(true)
+                  try { haptics.light() } catch {}
                 }}
                 aria-pressed={selected}
                 className={cls}
@@ -253,7 +269,7 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
             {/* Action buttons */}
             <div className="flex gap-2">
               <button
-                onClick={() => setShowRadiusSheet(false)}
+                onClick={() => { setShowRadiusSheet(false) }}
                 className={isDark
                   ? 'flex-1 py-2 px-3 bg-white/10 text-gray-200 rounded-xl text-sm font-medium transition-colors hover:bg-white/20'
                   : 'flex-1 py-2 px-3 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium transition-colors hover:bg-gray-200'}
@@ -264,6 +280,7 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
                 onClick={() => {
                   setDistanceRadiusKm && setDistanceRadiusKm(tempRadius)
                   setShowRadiusSheet(false)
+                  try { haptics.success() } catch {}
                 }}
                 className={isDark
                   ? 'flex-1 py-2 px-3 bg-rose-600 text-white rounded-xl text-sm font-medium transition-colors hover:bg-rose-700'

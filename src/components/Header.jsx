@@ -1,5 +1,6 @@
 import { LuClock as Clock, LuBell as Bell, LuBellOff as BellOff } from 'react-icons/lu'
 import brandLogo from '../../icon/icon_main.svg'
+import { haptics } from '../utils/haptics'
 
 const Header = ({ isDark = false, notificationsEnabled = false, onToggleNotificationsEnabled }) => {
 
@@ -33,7 +34,12 @@ const Header = ({ isDark = false, notificationsEnabled = false, onToggleNotifica
             </div>
             <div className="relative">
               <button
-                onClick={onToggleNotificationsEnabled}
+                onClick={() => {
+                  try {
+                    haptics.impact('medium') // Medium intensity for settings toggle
+                  } catch {}
+                  onToggleNotificationsEnabled()
+                }}
                 aria-label={notificationsEnabled ? 'Disable notifications' : 'Enable notifications'}
                 aria-pressed={notificationsEnabled}
                 className={isDark 

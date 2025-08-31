@@ -8,6 +8,7 @@ import {
   LuBellRing as BellRing,
   LuMap as Map
 } from 'react-icons/lu'
+import { haptics } from '../utils/haptics'
 
 const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetReminder, hasReminder = false, isDark = false, isLoading = false, onShowNearbyMap, activeCategory = 'all' }) => {
   const isOpen = () => {
@@ -90,6 +91,7 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
     onSetReminder({ type: 'before_close', minutes: parseInt(min) })
     setCustomBeforeMinutes('')
     setShowReminderMenu(false)
+    try { haptics.success() } catch {}
   }
 
   // 'at' mode removed
@@ -100,6 +102,7 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
     setInHours('')
     setInMinutes('')
     setShowReminderMenu(false)
+    try { haptics.success() } catch {}
   }
 
   // Get themed card styling based on active category
@@ -152,7 +155,7 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
               {hasReminder ? <BellRing className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
             </button>
             <button
-              onClick={() => onToggleFavorite(shop.id)}
+              onClick={() => { onToggleFavorite(shop.id); try { haptics.toggle(!isFavorite) } catch {} }}
               className={isDark
                 ? `p-2 rounded-full bg-white/5 backdrop-blur-md ${isFavorite ? 'text-yellow-400' : 'text-rose-400'} hover:bg-white/10 transition-colors ripple active:scale-95 transition-transform`
                 : `p-2 rounded-full bg-white/20 backdrop-blur-md ${isFavorite ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-700 hover:text-red-500'} hover:bg-white/30 transition-colors ripple active:scale-95 transition-transform`}

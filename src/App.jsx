@@ -8,6 +8,7 @@ import LocationPermission from './components/LocationPermission'
 import NearbyMap from './components/NearbyMap'
 import CityMap from './components/CityMap'
 import { mockShops } from './data/mockData'
+import { initHaptics } from './utils/haptics'
 
 function App() {
   const [shops, setShops] = useState([])
@@ -51,6 +52,10 @@ function App() {
 
   // Dark mode forced globally (pure black with reddish tint)
   const isDark = true
+
+  useEffect(() => {
+    try { initHaptics() } catch {}
+  }, [])
 
   // Witty empty-state messages for no results
   const genericEmptyMessages = [

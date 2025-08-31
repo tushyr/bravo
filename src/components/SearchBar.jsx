@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { LuSearch as Search, LuMapPin as MapPin } from 'react-icons/lu'
+import { haptics } from '../utils/haptics'
 
 const SearchBar = ({ searchQuery, setSearchQuery, isDark = false, onNearMe, onNearMeLongPress, isNearMeActive = false }) => {
   const longPressTimeoutRef = useRef(null)
@@ -10,6 +11,9 @@ const SearchBar = ({ searchQuery, setSearchQuery, isDark = false, onNearMe, onNe
     if (longPressTimeoutRef.current) clearTimeout(longPressTimeoutRef.current)
     longPressTimeoutRef.current = setTimeout(() => {
       longPressTriggeredRef.current = true
+      try {
+        haptics.impact('heavy') // Heavy intensity for long press (opens modal)
+      } catch {}
       onNearMeLongPress && onNearMeLongPress()
     }, 500)
   }
@@ -36,6 +40,9 @@ const SearchBar = ({ searchQuery, setSearchQuery, isDark = false, onNearMe, onNe
           onClick={(e) => {
             e.preventDefault()
             if (!longPressTriggeredRef.current) {
+              try {
+                haptics.impact('medium') // Medium intensity for Near Me action
+              } catch {}
               onNearMe && onNearMe()
             }
             longPressTriggeredRef.current = false
