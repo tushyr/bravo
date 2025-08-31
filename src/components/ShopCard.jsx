@@ -111,13 +111,13 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
     
     switch(activeCategory) {
       case 'all':
-        return 'bg-white/5 backdrop-blur-lg rounded-3xl shadow-lg overflow-visible hover:shadow-xl hover:bg-red-500/10 transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5 hover:scale-[1.01] active:scale-[0.995] ripple ripple-white motion-sensitive ring-1 ring-red-500/20'
+        return 'bg-white/5 backdrop-blur-lg rounded-3xl shadow-lg overflow-visible hover:shadow-xl hover:bg-white/10 transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5 hover:scale-[1.01] active:scale-[0.995] ripple ripple-white motion-sensitive ring-1 ring-white/12'
       case 'liquor_store':
-        return 'bg-white/5 backdrop-blur-lg rounded-3xl shadow-lg overflow-visible hover:shadow-xl hover:bg-emerald-500/10 transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5 hover:scale-[1.01] active:scale-[0.995] ripple ripple-white motion-sensitive ring-1 ring-emerald-500/20'
+        return 'bg-white/5 backdrop-blur-lg rounded-3xl shadow-lg overflow-visible hover:shadow-xl hover:bg-white/10 transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5 hover:scale-[1.01] active:scale-[0.995] ripple ripple-white motion-sensitive ring-1 ring-white/12'
       case 'bar':
-        return 'bg-white/5 backdrop-blur-lg rounded-3xl shadow-lg overflow-visible hover:shadow-xl hover:bg-cyan-500/10 transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5 hover:scale-[1.01] active:scale-[0.995] ripple ripple-white motion-sensitive ring-1 ring-cyan-500/20'
+        return 'bg-white/5 backdrop-blur-lg rounded-3xl shadow-lg overflow-visible hover:shadow-xl hover:bg-white/10 transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5 hover:scale-[1.01] active:scale-[0.995] ripple ripple-white motion-sensitive ring-1 ring-white/12'
       case 'premium':
-        return 'bg-white/5 backdrop-blur-lg rounded-3xl shadow-lg overflow-visible hover:shadow-xl hover:bg-gradient-to-br hover:from-purple-500/10 hover:to-yellow-500/10 transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5 hover:scale-[1.01] active:scale-[0.995] ripple ripple-white motion-sensitive ring-1 ring-purple-500/20'
+        return 'bg-white/5 backdrop-blur-lg rounded-3xl shadow-lg overflow-visible hover:shadow-xl hover:bg-white/10 transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5 hover:scale-[1.01] active:scale-[0.995] ripple ripple-white motion-sensitive ring-1 ring-white/12'
       default:
         return 'bg-white/5 backdrop-blur-lg rounded-3xl shadow-lg overflow-visible hover:shadow-xl hover:bg-white/10 transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5 hover:scale-[1.01] active:scale-[0.995] ripple ripple-white motion-sensitive'
     }
@@ -197,14 +197,14 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
                     <button
                       onClick={() => setMode('before_close')}
                       aria-pressed={mode === 'before_close'}
-                      className={isDark ? 'relative z-10 px-3 py-1.5 rounded-full text-xs font-medium text-gray-200 hover:text-white transition-colors ripple ripple-rose active:scale-95' : 'relative z-10 px-3 py-1.5 rounded-full text-xs font-medium text-gray-800 hover:text-gray-900 transition-colors ripple ripple-rose active:scale-95'}
+                      className={isDark ? 'relative z-10 px-3 py-1.5 rounded-full text-xs font-medium text-gray-200 hover:text-white transition-colors ripple ripple-white active:scale-95' : 'relative z-10 px-3 py-1.5 rounded-full text-xs font-medium text-gray-800 hover:text-gray-900 transition-colors ripple ripple-white active:scale-95'}
                     >
                       Before close
                     </button>
                     <button
                       onClick={() => setMode('in')}
                       aria-pressed={mode === 'in'}
-                      className={isDark ? 'relative z-10 px-3 py-1.5 rounded-full text-xs font-medium text-gray-200 hover:text-white transition-colors ripple ripple-rose active:scale-95' : 'relative z-10 px-3 py-1.5 rounded-full text-xs font-medium text-gray-800 hover:text-gray-900 transition-colors ripple ripple-rose active:scale-95'}
+                      className={isDark ? 'relative z-10 px-3 py-1.5 rounded-full text-xs font-medium text-gray-200 hover:text-white transition-colors ripple ripple-white active:scale-95' : 'relative z-10 px-3 py-1.5 rounded-full text-xs font-medium text-gray-800 hover:text-gray-900 transition-colors ripple ripple-white active:scale-95'}
                     >
                       In
                     </button>
@@ -224,8 +224,8 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
                             key={opt.value}
                             onClick={() => setAndClose(opt.value)}
                             className={isDark
-                              ? 'px-3 py-1.5 rounded-full bg-neutral-800 text-xs text-gray-100 border border-white/10 hover:bg-neutral-700 transition-colors transition-transform ripple ripple-rose active:scale-95'
-                              : 'px-3 py-1.5 rounded-full bg-gray-100 text-xs text-gray-800 border border-gray-300 hover:bg-gray-200 transition-colors transition-transform ripple ripple-rose active:scale-95'}
+                              ? 'px-3 py-1.5 rounded-full bg-neutral-800 text-xs text-gray-100 border border-white/10 hover:bg-neutral-700 transition-colors transition-transform ripple ripple-white active:scale-95'
+                              : 'px-3 py-1.5 rounded-full bg-gray-100 text-xs text-gray-800 border border-gray-300 hover:bg-gray-200 transition-colors transition-transform ripple ripple-white active:scale-95'}
                           >
                             {opt.label}
                           </button>
@@ -247,8 +247,8 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
                           onClick={() => setAndClose(parseInt(customBeforeMinutes))}
                           disabled={!customBeforeMinutes || parseInt(customBeforeMinutes) <= 0}
                           className={isDark
-                            ? 'px-4 py-1.5 rounded-full bg-rose-500 text-white text-sm font-semibold shadow-lg shadow-rose-900/30 ring-2 ring-rose-400/60 ring-offset-2 ring-offset-neutral-900 hover:bg-rose-600 transition-colors ripple ripple-rose active:scale-95 disabled:opacity-50 disabled:hover:bg-rose-500 focus-visible:outline-none focus-visible:ring-2'
-                            : 'px-4 py-1.5 rounded-full bg-purple-700 text-white text-sm font-semibold shadow-lg shadow-purple-900/20 ring-2 ring-purple-600/50 ring-offset-2 ring-offset-white hover:bg-purple-800 transition-colors ripple ripple-rose active:scale-95 disabled:opacity-50 disabled:hover:bg-purple-700 focus-visible:outline-none focus-visible:ring-2'}
+                            ? 'px-4 py-1.5 rounded-full text-white text-sm font-semibold glass-chip-active transition-colors ripple ripple-white active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2'
+                            : 'px-4 py-1.5 rounded-full text-white text-sm font-semibold glass-chip-active-light transition-colors ripple ripple-white active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2'}
                         >
                           Set
                         </button>
@@ -267,8 +267,8 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
                             key={opt.value}
                             onClick={() => setInAndClose(opt.value)}
                             className={isDark
-                              ? 'px-3 py-1.5 rounded-full bg-neutral-800 text-xs text-gray-100 border border-white/10 hover:bg-neutral-700 transition-colors transition-transform ripple ripple-rose active:scale-95'
-                              : 'px-3 py-1.5 rounded-full bg-gray-100 text-xs text-gray-800 border border-gray-300 hover:bg-gray-200 transition-colors transition-transform ripple ripple-rose active:scale-95'}
+                              ? 'px-3 py-1.5 rounded-full bg-neutral-800 text-xs text-gray-100 border border-white/10 hover:bg-neutral-700 transition-colors transition-transform ripple ripple-white active:scale-95'
+                              : 'px-3 py-1.5 rounded-full bg-gray-100 text-xs text-gray-800 border border-gray-300 hover:bg-gray-200 transition-colors transition-transform ripple ripple-white active:scale-95'}
                           >
                             {opt.label}
                           </button>
@@ -306,8 +306,8 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
                           }}
                           disabled={((parseInt(inHours || 0) || 0) * 60 + (parseInt(inMinutes || 0) || 0)) <= 0}
                           className={isDark
-                            ? 'px-4 py-1.5 rounded-full bg-rose-500 text-white text-sm font-semibold shadow-lg shadow-rose-900/30 ring-2 ring-rose-400/60 ring-offset-2 ring-offset-neutral-900 hover:bg-rose-600 transition-colors ripple ripple-rose active:scale-95 disabled:opacity-50 disabled:hover:bg-rose-500 focus-visible:outline-none focus-visible:ring-2'
-                            : 'px-4 py-1.5 rounded-full bg-purple-700 text-white text-sm font-semibold shadow-lg shadow-purple-900/20 ring-2 ring-purple-600/50 ring-offset-2 ring-offset-white hover:bg-purple-800 transition-colors ripple ripple-rose active:scale-95 disabled:opacity-50 disabled:hover:bg-purple-700 focus-visible:outline-none focus-visible:ring-2'}
+                            ? 'px-4 py-1.5 rounded-full text-white text-sm font-semibold glass-chip-active transition-colors ripple ripple-white active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2'
+                            : 'px-4 py-1.5 rounded-full text-white text-sm font-semibold glass-chip-active-light transition-colors ripple ripple-white active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2'}
                         >
                           Set
                         </button>
@@ -350,7 +350,7 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
         {/* Location and rating */}
         <div className={isDark ? 'flex items-center space-x-3 text-[13px] lg:text-[12.5px] text-gray-300 mb-3' : 'flex items-center space-x-3 text-[13px] lg:text-[12.5px] text-gray-600 mb-3'}>
           <div className="flex items-center gap-1.5">
-            <MapPin className={isDark ? 'h-4 w-4 text-rose-400' : 'h-4 w-4 text-purple-600'} />
+            <MapPin className={isDark ? 'h-4 w-4 text-neon-purple' : 'h-4 w-4 text-neon-purple'} />
             <span className="font-medium">{shop.area}</span>
           </div>
           <div className="flex items-center gap-1.5">

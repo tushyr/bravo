@@ -90,8 +90,8 @@ const LocationPermission = ({ isDark = false, onLocationEnabled }) => {
           onClick={handleEnableLocation}
           aria-label="Enable location services"
           className={isDark
-            ? 'w-full bg-rose-500/80 hover:bg-rose-500 text-white font-medium py-2.5 px-5 rounded-full transition-all duration-200 ring-1 ring-rose-400/40 hover:ring-rose-400/60 ripple ripple-rose active:scale-95 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black'
-            : 'w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2.5 px-5 rounded-full transition-all duration-200 ring-1 ring-purple-400/40 hover:ring-purple-400/60 ripple ripple-rose active:scale-95 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white'
+            ? 'w-full glass-chip-active text-white font-medium py-2.5 px-5 rounded-full transition-all duration-200 ripple ripple-white active:scale-95 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A020F0] focus-visible:ring-offset-2 focus-visible:ring-offset-black'
+            : 'w-full glass-chip-active-light text-white font-medium py-2.5 px-5 rounded-full transition-all duration-200 ripple ripple-white active:scale-95 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A020F0] focus-visible:ring-offset-2 focus-visible:ring-offset-white'
           }
         >
           Enable Location

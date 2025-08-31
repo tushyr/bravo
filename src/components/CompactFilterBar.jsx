@@ -22,7 +22,7 @@ const CompactFilterBar = ({ filters, setFilters, totalShops }) => {
           <div className="flex items-center space-x-4">
             <button
               onClick={toggleMenu}
-              className="p-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-200 glow-rose ripple ripple-rose active:scale-95"
+              className="p-2 rounded-full glass-chip-light text-purple-700 transition-all duration-200 ripple ripple-white active:scale-95"
             >
               <Menu className="h-5 w-5" />
             </button>

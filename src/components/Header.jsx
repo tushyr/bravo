@@ -29,7 +29,7 @@ const Header = ({ isDark = false, notificationsEnabled = false, onToggleNotifica
           </div>
           <div className="flex items-center space-x-3">
             <div className={isDark ? 'flex items-center gap-1.5 text-xs text-gray-300' : 'flex items-center space-x-2 text-sm text-gray-800 bg-white/30 ring-1 ring-white/40 px-3 py-1.5 rounded-full backdrop-blur-md'}>
-              <Clock className={isDark ? 'h-4 w-4 text-rose-400' : 'h-4 w-4 text-purple-500'} />
+              <Clock className={isDark ? 'h-4 w-4 text-neon-purple' : 'h-4 w-4 text-neon-purple'} />
               <span className="font-medium">{currentTime}</span>
             </div>
             <div className="relative">
@@ -43,8 +43,8 @@ const Header = ({ isDark = false, notificationsEnabled = false, onToggleNotifica
                 aria-label={notificationsEnabled ? 'Disable notifications' : 'Enable notifications'}
                 aria-pressed={notificationsEnabled}
                 className={isDark 
-                  ? `p-2.5 rounded-xl backdrop-blur-md ring-1 transition-all shadow-md ripple active:scale-95 motion-sensitive ${notificationsEnabled ? 'bg-white/5 ring-white/10 text-rose-400 hover:bg-white/10' : 'bg-white/5 ring-white/10 text-gray-400 hover:bg-white/10'}`
-                  : `p-2.5 rounded-xl backdrop-blur-md ring-1 transition-all shadow-md ripple active:scale-95 motion-sensitive ${notificationsEnabled ? 'bg-white/30 ring-white/40 text-purple-600 hover:bg-white/40' : 'bg-white/30 ring-white/40 text-gray-700 hover:bg-white/40'}`
+                  ? `p-2.5 rounded-xl backdrop-blur-md ring-1 transition-all shadow-md ripple active:scale-95 motion-sensitive ${notificationsEnabled ? 'bg-white/5 ring-white/10 text-neon-purple hover:bg-white/10' : 'bg-white/5 ring-white/10 text-gray-400 hover:bg-white/10'}`
+                  : `p-2.5 rounded-xl backdrop-blur-md ring-1 transition-all shadow-md ripple active:scale-95 motion-sensitive ${notificationsEnabled ? 'bg-white/30 ring-white/40 text-neon-purple hover:bg-white/40' : 'bg-white/30 ring-white/40 text-gray-700 hover:bg-white/40'}`
                 }
               >
                 {notificationsEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}

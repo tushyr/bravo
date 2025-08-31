@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* App-like, fixed feel across iOS/Android/Desktop */
-html, body { height: 100%; background: #000; }
+html, body { height: 100%; background: #0f0f0f; }
 body {
   margin: 0;
   overscroll-behavior-y: none;
@@ -11,7 +11,7 @@ body {
   /* Improve iOS rendering */
   -webkit-font-smoothing: antialiased;
 }
-#root { min-height: 100dvh; background: #000; }
+#root { min-height: 100dvh; background: #0f0f0f; }
 /* Reduce accidental zooming in PWA: allow panning but not pinch/double-tap */
 html, body {
   touch-action: pan-x pan-y;
@@ -37,7 +37,7 @@ input, select, textarea {
   overflow-y: auto;
   overflow-x: hidden; /* ensure no horizontal bar even if inner content overflows */
   -webkit-overflow-scrolling: touch;
-  background: #000;
+  background: #0f0f0f;
   overscroll-behavior-y: contain;
   /* Respect iOS safe areas (notch/dynamic island & home indicator) */
   padding-top: max(0px, env(safe-area-inset-top));
@@ -54,6 +54,28 @@ input, select, textarea {
   -ms-overflow-style: none; /* IE and Edge Legacy */
 }
 .app-scroll::-webkit-scrollbar { width: 0; height: 0; }
+
+/* Typography base and brand utilities */
+@layer base {
+  body {
+    /* Inter for body text via Tailwind default sans (see tailwind.config.js) */
+    @apply font-sans text-gray-200 antialiased;
+    background-color: #0f0f0f;
+  }
+  h1 { @apply font-poppins font-bold tracking-tight text-white text-3xl md:text-4xl; }
+  h2 { @apply font-poppins font-semibold tracking-tight text-white text-2xl md:text-3xl; }
+  h3 { @apply font-poppins font-semibold tracking-tight text-white text-xl md:text-2xl; }
+  h4 { @apply font-poppins font-semibold tracking-tight text-white text-lg md:text-xl; }
+  p  { @apply text-gray-300; }
+}
+
+/* Optional: brand gradient text helper for premium headings */
+.text-brand-gradient {
+  background: linear-gradient(135deg, #A020F0, #00D9FF);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 
 /* Utility: add bottom spacer equal to iOS safe area without overriding existing padding */
 .safe-area-bottom::after {
@@ -100,8 +122,9 @@ input, select, textarea {
 /* Ripple color variants */
 .ripple-rose { --ripple-color: rgba(244, 63, 94, 0.28); }
 .ripple-white { --ripple-color: rgba(255, 255, 255, 0.22); }
+.ripple-blue { --ripple-color: rgba(0, 217, 255, 0.25); }
 
-/* Accent glow (subtle) */
+/* Accent glow (subtle) - keep for compatibility */
 .glow-rose {
   transition: filter 160ms ease;
 }
@@ -113,8 +136,8 @@ input, select, textarea {
 .header-ambient {
   pointer-events: none;
   background:
-    radial-gradient(60% 60% at 85% 0%, rgba(244, 63, 94, 0.09), transparent 60%),
-    radial-gradient(50% 50% at 10% 100%, rgba(255, 0, 92, 0.06), transparent 60%);
+    radial-gradient(60% 60% at 85% 0%, rgba(160, 32, 240, 0.10), transparent 60%),
+    radial-gradient(50% 50% at 10% 100%, rgba(0, 217, 255, 0.08), transparent 60%);
   animation: ambient-move 16s ease-in-out infinite alternate;
   filter: blur(2px);
 }
@@ -289,14 +312,108 @@ input, select, textarea {
   box-shadow: 0 2px 8px rgba(225, 29, 72, 0.4);
 }
 
+/* Glassmorphism effects */
+.glass-chip {
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.06));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.glass-chip-active {
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  /* Brand neon accent (purple → blue), very subtle without halo */
+  background: linear-gradient(135deg, rgba(160, 32, 240, 0.22), rgba(0, 217, 255, 0.18));
+  border: 1px solid rgba(160, 32, 240, 0.35);
+  /* Remove colored outer glow; keep a soft neutral elevation */
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.glass-chip-light {
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.glass-chip-active-light {
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  /* Brand neon accent for light mode */
+  background: linear-gradient(135deg, rgba(160, 32, 240, 0.28), rgba(0, 217, 255, 0.24));
+  border: 1px solid rgba(160, 32, 240, 0.55);
+  /* Softer neutral shadow to avoid halos */
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.30);
+}
+
+/* Tinted success variant for active state (e.g., Open Now) */
+.glass-chip-active-success {
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.22), rgba(16, 185, 129, 0.18));
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  /* Softer success shadow to prevent green halos */
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+/* Glass hover effects */
+.glass-chip:hover {
+  background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.08));
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+.glass-chip-light:hover {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.95);
+  transform: translateY(-1px);
+}
+
 /* Respect reduced motion for new effects */
 @media (prefers-reduced-motion: reduce) {
   .glass-sheen::after { animation: none; opacity: 0.06; }
   .animate-fade-slide-in { animation: none; }
   .animate-float { animation: none; }
   .animate-slide-up { animation: none; }
+  .glass-chip:hover, .glass-chip-light:hover { transform: none; }
+}
+.glass-chip:focus-visible,
+.glass-chip-active:focus-visible,
+.glass-chip-light:focus-visible,
+.glass-chip-active-light:focus-visible,
+.glass-chip-active-success:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.2),
+    0 10px 24px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 .reduce-motion .glass-sheen::after { animation: none; opacity: 0.06; }
+.reduce-motion .glass-chip:hover, .reduce-motion .glass-chip-light:hover { transform: none; }
 .reduce-motion .animate-fade-slide-in { animation: none; }
 .reduce-motion .animate-float { animation: none; }
 .reduce-motion .animate-slide-up { animation: none; }

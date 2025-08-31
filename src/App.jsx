@@ -549,49 +549,50 @@ function App() {
   }
 
   return (
-    <div className={isDark ? 'app-scroll bg-black text-gray-100 relative overflow-x-hidden' : 'app-scroll bg-gradient-to-br from-purple-400 via-pink-300 to-blue-400 relative overflow-x-hidden'}>
-      {isDark && (
-        <div aria-hidden className="absolute inset-0 z-0 pointer-events-none transition-all duration-1000 ease-in-out">
-          {/* Dynamic themed gradients based on active category */}
-          {activeCategory === 'all' && (
-            <>
-              {/* Default red theme */}
-              <div className="absolute top-0 left-0 right-0 h-80 bg-gradient-to-b from-red-900/30 via-red-800/15 to-transparent transition-all duration-1000"></div>
-              <div className="absolute -top-24 -right-16 h-80 w-80 rounded-full bg-rose-700/25 blur-3xl transition-all duration-1000"></div>
-              <div className="absolute bottom-[-96px] left-1/4 h-96 w-96 rounded-full bg-red-500/10 blur-3xl transition-all duration-1000"></div>
-            </>
-          )}
-          {activeCategory === 'liquor_store' && (
-            <>
-              {/* Deep emerald/forest green theme for liquor stores */}
-              <div className="absolute top-0 left-0 right-0 h-80 bg-gradient-to-b from-emerald-900/35 via-green-800/20 to-transparent transition-all duration-1000"></div>
-              <div className="absolute -top-24 -right-16 h-80 w-80 rounded-full bg-emerald-600/30 blur-3xl transition-all duration-1000"></div>
-              <div className="absolute bottom-[-96px] left-1/4 h-96 w-96 rounded-full bg-teal-500/15 blur-3xl transition-all duration-1000"></div>
-              <div className="absolute top-1/2 left-1/4 h-56 w-56 rounded-full bg-green-400/10 blur-2xl transition-all duration-1000"></div>
-            </>
-          )}
-          {activeCategory === 'bar' && (
-            <>
-              {/* Neon cyan/electric theme for bars */}
-              <div className="absolute top-0 left-0 right-0 h-80 bg-gradient-to-b from-cyan-900/30 via-cyan-800/15 to-transparent transition-all duration-1000"></div>
-              <div className="absolute -top-24 -right-16 h-80 w-80 rounded-full bg-cyan-500/30 blur-3xl animate-pulse transition-all duration-1000"></div>
-              <div className="absolute bottom-[-96px] left-1/4 h-96 w-96 rounded-full bg-blue-400/15 blur-3xl transition-all duration-1000"></div>
-              <div className="absolute top-1/3 right-1/3 h-64 w-64 rounded-full bg-cyan-400/20 blur-2xl animate-pulse transition-all duration-1000" style={{animationDelay: '1s'}}></div>
-            </>
-          )}
-          {activeCategory === 'premium' && (
-            <>
-              {/* Luxurious gold/purple theme for premium */}
-              <div className="absolute top-0 left-0 right-0 h-80 bg-gradient-to-b from-purple-900/40 via-indigo-900/20 to-transparent transition-all duration-1000"></div>
-              <div className="absolute -top-24 -right-16 h-80 w-80 rounded-full bg-gradient-to-br from-yellow-400/20 to-purple-600/25 blur-3xl transition-all duration-1000"></div>
-              <div className="absolute bottom-[-96px] left-1/4 h-96 w-96 rounded-full bg-gradient-to-tr from-amber-400/10 to-violet-500/15 blur-3xl transition-all duration-1000"></div>
-              <div className="absolute top-1/4 left-1/3 h-48 w-48 rounded-full bg-yellow-300/10 blur-2xl transition-all duration-1000"></div>
-            </>
-          )}
-        </div>
-      )}
+    <div className="app-scroll">
+      <div className={isDark ? 'min-h-screen bg-dark-900 text-white' : 'min-h-screen bg-gray-50 text-gray-900'}>
+        {isDark && (
+          <div aria-hidden className="absolute inset-0 z-0 pointer-events-none transition-all duration-1000 ease-in-out">
+            {/* Dynamic themed gradients based on active category */}
+            {activeCategory === 'all' && (
+              <>
+                {/* ThekaBar rose/red theme */}
+                <div className="absolute top-0 left-0 right-0 h-80 bg-gradient-to-b from-red-900/30 via-red-800/15 to-transparent transition-all duration-1000"></div>
+                <div className="absolute -top-24 -right-16 h-80 w-80 rounded-full bg-rose-700/25 blur-3xl transition-all duration-1000"></div>
+                <div className="absolute bottom-[-96px] left-1/4 h-96 w-96 rounded-full bg-red-500/10 blur-3xl transition-all duration-1000"></div>
+              </>
+            )}
+            {activeCategory === 'liquor_store' && (
+              <>
+                {/* Deep emerald/forest green theme for liquor stores */}
+                <div className="absolute top-0 left-0 right-0 h-80 bg-gradient-to-b from-emerald-900/35 via-green-800/20 to-transparent transition-all duration-1000"></div>
+                <div className="absolute -top-24 -right-16 h-80 w-80 rounded-full bg-emerald-600/30 blur-3xl transition-all duration-1000"></div>
+                <div className="absolute bottom-[-96px] left-1/4 h-96 w-96 rounded-full bg-teal-500/15 blur-3xl transition-all duration-1000"></div>
+                <div className="absolute top-1/2 left-1/4 h-56 w-56 rounded-full bg-green-400/10 blur-2xl transition-all duration-1000"></div>
+              </>
+            )}
+            {activeCategory === 'bar' && (
+              <>
+                {/* Neon cyan/electric theme for bars */}
+                <div className="absolute top-0 left-0 right-0 h-80 bg-gradient-to-b from-cyan-900/30 via-cyan-800/15 to-transparent transition-all duration-1000"></div>
+                <div className="absolute -top-24 -right-16 h-80 w-80 rounded-full bg-cyan-500/30 blur-3xl animate-pulse transition-all duration-1000"></div>
+                <div className="absolute bottom-[-96px] left-1/4 h-96 w-96 rounded-full bg-blue-400/15 blur-3xl transition-all duration-1000"></div>
+                <div className="absolute top-1/3 right-1/3 h-64 w-64 rounded-full bg-cyan-400/20 blur-2xl animate-pulse transition-all duration-1000" style={{animationDelay: '1s'}}></div>
+              </>
+            )}
+            {activeCategory === 'premium' && (
+              <>
+                {/* Luxurious gold/purple theme for premium */}
+                <div className="absolute top-0 left-0 right-0 h-80 bg-gradient-to-b from-purple-900/40 via-indigo-900/20 to-transparent transition-all duration-1000"></div>
+                <div className="absolute -top-24 -right-16 h-80 w-80 rounded-full bg-gradient-to-br from-yellow-400/20 to-purple-600/25 blur-3xl transition-all duration-1000"></div>
+                <div className="absolute bottom-[-96px] left-1/4 h-96 w-96 rounded-full bg-gradient-to-tr from-amber-400/10 to-violet-500/15 blur-3xl transition-all duration-1000"></div>
+                <div className="absolute top-1/4 left-1/3 h-48 w-48 rounded-full bg-yellow-300/10 blur-2xl transition-all duration-1000"></div>
+              </>
+            )}
+          </div>
+        )}
 
-      <div className="relative z-10">
+        <div className="relative z-10">
         <Header 
           isDark={isDark}
           notificationsEnabled={notificationsEnabled}
@@ -686,6 +687,7 @@ function App() {
           openNowFilter={openNowFilter}
           isDark={isDark}
         />
+        </div>
       </div>
     </div>
   )

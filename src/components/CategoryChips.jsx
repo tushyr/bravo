@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { LuClock as Clock, LuMap as Map, LuHeart as Heart } from 'react-icons/lu'
 import { haptics } from '../utils/haptics'
 
@@ -17,6 +17,8 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
   // Bottom sheet state for custom radius
   const [showRadiusSheet, setShowRadiusSheet] = useState(false)
   const [tempRadius, setTempRadius] = useState(distanceRadiusKm || 10)
+  // Track previous slider value to modulate haptic intensity while sliding
+  const sliderPrevRef = useRef(distanceRadiusKm || 10)
 
   // When maskDistanceSelection is true, do not highlight any distance chip in the UI
   const showDistanceSelection = !maskDistanceSelection
@@ -38,6 +40,7 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
     if (typeof bindOpenRadiusModal === 'function') {
       bindOpenRadiusModal(() => {
         setTempRadius(distanceRadiusKm || 10)
+        sliderPrevRef.current = distanceRadiusKm || 10
         setShowRadiusSheet(true)
       })
     }
@@ -66,14 +69,12 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
             setOpenNowFilter(next)
             try { haptics.toggle(next) } catch {}
           }}
-          className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors transition-transform glow-rose ripple ripple-rose active:scale-95 ${
+          className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-sm font-medium transition-all ripple ripple-white active:scale-95 ${
             openNowFilter
-              ? (isDark
-                  ? 'bg-green-600/80 text-white border border-green-500/40'
-                  : 'bg-green-600 text-white border border-green-700/30')
+              ? 'glass-chip-active-success text-white'
               : (isDark
-                  ? 'bg-white/5 backdrop-blur-md text-gray-200 border border-white/20 hover:bg-white/10'
-                  : 'bg-transparent text-gray-800 border border-gray-300 hover:bg-gray-50')
+                  ? 'glass-chip text-gray-200'
+                  : 'glass-chip-light text-gray-800')
           }`}
         >
           <Clock className={`h-4 w-4 mr-2 ${openNowFilter ? 'text-white' : (isDark ? 'text-gray-300' : 'text-gray-600')}`} />
@@ -88,8 +89,8 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
             onShowCityMap && onShowCityMap()
           }}
           className={isDark
-            ? 'inline-flex items-center px-3.5 py-1.5 rounded-full text-sm font-medium bg-white/5 backdrop-blur-md text-blue-400 border border-white/20 hover:bg-white/10 transition-colors transition-transform ripple ripple-rose active:scale-95'
-            : 'inline-flex items-center px-3.5 py-1.5 rounded-full text-sm font-medium bg-transparent text-blue-600 border border-gray-300 hover:bg-gray-50 transition-colors transition-transform ripple ripple-rose active:scale-95'}
+            ? 'inline-flex items-center px-3.5 py-1.5 rounded-full text-sm font-medium glass-chip text-blue-300 transition-all ripple ripple-white active:scale-95'
+            : 'inline-flex items-center px-3.5 py-1.5 rounded-full text-sm font-medium glass-chip-light text-blue-600 transition-all ripple ripple-white active:scale-95'}
           title="View city map with all locations"
         >
           <Map className="h-4 w-4 mr-2" />
@@ -103,8 +104,8 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
             try { haptics.toggle(next) } catch {}
           }}
           className={isDark
-            ? `inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium ${favoritesOnly ? 'bg-rose-600/80 text-white border border-rose-500/40' : 'bg-white/5 backdrop-blur-md text-gray-200 border border-white/20 hover:bg-white/10'} transition-colors transition-transform ripple ripple-rose active:scale-95`
-            : `inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium ${favoritesOnly ? 'bg-purple-600 text-white border border-purple-700/40' : 'bg-transparent text-gray-800 border border-gray-300 hover:bg-gray-50'} transition-colors transition-transform ripple ripple-rose active:scale-95`}
+            ? `inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium ${favoritesOnly ? 'glass-chip-active text-white' : 'glass-chip text-gray-200'} transition-all ripple ripple-white active:scale-95`
+            : `inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium ${favoritesOnly ? 'glass-chip-active-light text-white' : 'glass-chip-light text-gray-800'} transition-all ripple ripple-white active:scale-95`}
           title={favoritesOnly ? 'Showing favorites' : 'Show favorites only'}
           aria-pressed={favoritesOnly}
         >
@@ -119,14 +120,14 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
           <button
             key={category.id}
             onClick={() => { try { haptics.selection() } catch {}; setActiveCategory(category.id) }}
-            className={`px-3.5 py-1.5 lg:px-4 lg:py-2 rounded-full text-[13px] lg:text-sm font-medium whitespace-nowrap transition-all duration-300 ease-out ripple ripple-rose active:scale-95 ${
+            className={`px-3.5 py-1.5 lg:px-4 lg:py-2 rounded-full text-[13px] lg:text-sm font-poppins font-semibold whitespace-nowrap transition-all duration-300 ease-out ripple active:scale-95 ${
               activeCategory === category.id
                 ? (isDark
-                    ? 'bg-rose-600/85 text-white border border-rose-500/40 shadow-none'
-                    : 'bg-purple-600 text-white border border-purple-700/40 shadow-none')
+                    ? 'glass-chip-active text-white'
+                    : 'glass-chip-active-light text-white')
                 : (isDark
-                    ? 'bg-white/5 backdrop-blur-md text-gray-200 border border-white/20 hover:bg-white/10'
-                    : 'bg-transparent text-gray-800 border border-gray-300 hover:bg-gray-50')
+                    ? 'glass-chip text-gray-200'
+                    : 'glass-chip-light text-gray-800')
             }`}
             style={{
               transitionDelay: `${index * 50}ms`,
@@ -140,19 +141,19 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
 
       {/* Distance Chips */}
       <div className="mt-3">
-        <div className={isDark ? 'text-gray-300 text-xs mb-2 font-medium' : 'text-gray-800 text-xs mb-2 font-medium'}>Distance</div>
+        <div className={isDark ? 'text-gray-300 text-xs mb-2 font-poppins font-semibold tracking-wide' : 'text-gray-800 text-xs mb-2 font-poppins font-semibold tracking-wide'}>Distance</div>
         <div className="flex flex-wrap items-center gap-1.5 lg:gap-2">
           {/* Any (disable proximity) */}
           {(() => {
             const selected = isAnySelected
-            const common = 'px-3 py-1.5 text-xs lg:px-3.5 lg:py-1.5 lg:text-[13px] rounded-full transition-all duration-300 ease-out font-medium ripple ripple-rose active:scale-95 hover:scale-102'
+            const common = 'px-3 py-1.5 text-xs lg:px-3.5 lg:py-1.5 lg:text-[13px] rounded-full transition-all duration-300 ease-out font-poppins font-medium ripple active:scale-95'
             const cls = selected
               ? (isDark
-                  ? `bg-rose-600/80 text-white border border-rose-500/40 ${common}`
-                  : `bg-purple-600 text-white border border-purple-700/40 ${common}`)
+                  ? `glass-chip-active text-white ${common}`
+                  : `glass-chip-active-light text-white ${common}`)
               : (isDark
-                  ? `bg-white/5 backdrop-blur-md text-gray-200 border border-white/20 hover:bg-white/10 ${common}`
-                  : `bg-transparent text-gray-800 border border-gray-300 hover:bg-gray-50 ${common}`)
+                  ? `glass-chip text-gray-200 ${common}`
+                  : `glass-chip-light text-gray-800 ${common}`)
             return (
               <button
                 key="any"
@@ -168,14 +169,14 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
           {/* Preset distances */}
           {[5, 10, 50].map((km, index) => {
             const selected = (showDistanceSelection && distanceRadiusKm === km) || (maskDistanceSelection && distanceRadiusKm === km)
-            const common = 'px-3 py-1.5 text-xs lg:px-3.5 lg:py-1.5 lg:text-[13px] rounded-full transition-all duration-300 ease-out font-medium ripple ripple-rose active:scale-95 hover:scale-102'
+            const common = 'px-3 py-1.5 text-xs lg:px-3.5 lg:py-1.5 lg:text-[13px] rounded-full transition-all duration-300 ease-out font-poppins font-medium ripple active:scale-95'
             const cls = selected
               ? (isDark
-                  ? `bg-rose-600/80 text-white border border-rose-500/40 ${common}`
-                  : `bg-purple-600 text-white border border-purple-700/40 ${common}`)
+                  ? `glass-chip-active text-white ${common}`
+                  : `glass-chip-active-light text-white ${common}`)
               : (isDark
-                  ? `bg-white/5 backdrop-blur-md text-gray-200 border border-white/20 hover:bg-white/10 ${common}`
-                  : `bg-transparent text-gray-800 border border-gray-300 hover:bg-gray-50 ${common}`)
+                  ? `glass-chip text-gray-200 ${common}`
+                  : `glass-chip-light text-gray-800 ${common}`)
             return (
               <button
                 key={km}
@@ -194,19 +195,20 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
           {/* Custom radius button */}
           {(() => {
             const selected = isCustomSelected
-            const common = 'px-3 py-1.5 text-xs lg:px-3.5 lg:py-1.5 lg:text-[13px] rounded-full transition-all duration-300 ease-out font-medium ripple ripple-rose active:scale-95 hover:scale-102'
+            const common = 'px-3 py-1.5 text-xs lg:px-3.5 lg:py-1.5 lg:text-[13px] rounded-full transition-all duration-300 ease-out font-poppins font-medium ripple active:scale-95'
             const cls = selected
               ? (isDark
-                  ? `bg-rose-600/80 text-white border border-rose-500/40 ${common}`
-                  : `bg-purple-600 text-white border border-purple-700/40 ${common}`)
+                  ? `glass-chip-active text-white ${common}`
+                  : `glass-chip-active-light text-white ${common}`)
               : (isDark
-                  ? `bg-white/5 backdrop-blur-md text-gray-200 border border-white/20 hover:bg-white/10 ${common}`
-                  : `bg-transparent text-gray-800 border border-gray-300 hover:bg-gray-50 ${common}`)
+                  ? `glass-chip text-gray-200 ${common}`
+                  : `glass-chip-light text-gray-800 ${common}`)
             return (
               <button
                 key="custom"
                 onClick={() => {
                   setTempRadius(distanceRadiusKm || 10)
+                  sliderPrevRef.current = distanceRadiusKm || 10
                   setShowRadiusSheet(true)
                   try { haptics.light() } catch {}
                 }}
@@ -255,6 +257,22 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
                   step="0.5"
                   value={tempRadius}
                   onChange={(e) => setTempRadius(parseFloat(e.target.value))}
+                  onInput={(e) => {
+                    const v = parseFloat(e.target.value)
+                    setTempRadius(v)
+                    try {
+                      const prev = sliderPrevRef.current ?? v
+                      // Heavy when crossing tens, medium on integer km steps, light for minor steps
+                      if (Math.floor(v / 10) !== Math.floor(prev / 10)) {
+                        haptics.impact('heavy')
+                      } else if (Math.floor(v) !== Math.floor(prev)) {
+                        haptics.impact('medium')
+                      } else {
+                        haptics.light()
+                      }
+                      sliderPrevRef.current = v
+                    } catch {}
+                  }}
                   className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${isDark ? 'bg-gray-700 slider-thumb-dark' : 'bg-gray-200 slider-thumb-light'}`}
                   style={{ touchAction: 'pan-x' }}
                 />
