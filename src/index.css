@@ -56,6 +56,11 @@ input, select, textarea {
 }
 .app-scroll::-webkit-scrollbar { width: 0; height: 0; }
 
+/* When any modal is open, freeze the primary app scroller */
+.modal-open .app-scroll {
+  overflow: hidden !important;
+}
+
 /* Utility: explicitly allow panning in both directions inside a horiz scroller
    This ensures vertical page scroll still works when swiping over the element */
 .allow-pan-x {

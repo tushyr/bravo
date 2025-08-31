@@ -59,9 +59,6 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
 
   // Long press handlers
   const handleLongPress = () => {
-    try { 
-      haptics.impact('heavy') // Heavy haptic for long press
-    } catch {}
     // Ensure any open reminder menu is closed before expanding
     setShowReminderMenu(false)
     setShowExpandedCard(true)
@@ -368,6 +365,7 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
             <button
               onClick={(e) => {
                 e.stopPropagation()
+                try { haptics.light() } catch {}
                 onShowNearbyMap && onShowNearbyMap(shop)
               }}
               className={isDark 

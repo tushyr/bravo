@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { LuClock as Clock, LuMap as Map, LuHeart as Heart } from 'react-icons/lu'
 import { haptics } from '../utils/haptics'
+import { lockScroll } from '../utils/scrollLock'
 
 const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOpenNowFilter, onShowCityMap, isDark = false, distanceRadiusKm, setDistanceRadiusKm, bindOpenRadiusModal, maskDistanceSelection = false, favoritesOnly = false, setFavoritesOnly }) => {
   const categories = [
@@ -19,6 +20,12 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
   const [tempRadius, setTempRadius] = useState(distanceRadiusKm || 10)
   // Track previous slider value to modulate haptic intensity while sliding
   const sliderPrevRef = useRef(distanceRadiusKm || 10)
+  // Modal and focus management
+  const dialogRef = useRef(null)
+  const openerRef = useRef(null)
+  const sliderRef = useRef(null)
+  const releaseRef = useRef(null)
+  const prevFocusRef = useRef(null)
 
   // When maskDistanceSelection is true, do not highlight any distance chip in the UI
   const showDistanceSelection = !maskDistanceSelection
@@ -46,16 +53,62 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
     }
   }, [bindOpenRadiusModal, distanceRadiusKm])
 
-  // Lock body scroll and add ESC-to-close while modal is open
+  // Lock scroll using centralized helper, add ESC-to-close, focus trap, and restore focus on close
   useEffect(() => {
     if (!showRadiusSheet) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    const onKey = (e) => { if (e.key === 'Escape') setShowRadiusSheet(false) }
+    // Save previously focused element to restore later
+    prevFocusRef.current = document.activeElement
+    // Lock the app scroll container
+    releaseRef.current = lockScroll()
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation()
+        setShowRadiusSheet(false)
+        return
+      }
+      if (e.key === 'Tab' && dialogRef.current) {
+        // Simple focus trap within dialog
+        const focusables = dialogRef.current.querySelectorAll(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+        if (!focusables.length) return
+        const first = focusables[0]
+        const last = focusables[focusables.length - 1]
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault()
+            last.focus()
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault()
+            first.focus()
+          }
+        }
+      }
+    }
     document.addEventListener('keydown', onKey)
+
+    // Move initial focus to slider (or dialog container) on open
+    setTimeout(() => {
+      if (sliderRef.current) {
+        sliderRef.current.focus()
+      } else if (dialogRef.current) {
+        dialogRef.current.focus()
+      }
+    }, 0)
+
     return () => {
-      document.body.style.overflow = prev
       document.removeEventListener('keydown', onKey)
+      // Release scroll lock
+      if (releaseRef.current) {
+        try { releaseRef.current() } catch {}
+        releaseRef.current = null
+      }
+      // Restore focus to opener or previous element
+      const toFocus = openerRef.current || prevFocusRef.current
+      toFocus && toFocus.focus && toFocus.focus()
     }
   }, [showRadiusSheet])
 
@@ -206,6 +259,7 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
             return (
               <button
                 key="custom"
+                ref={openerRef}
                 onClick={() => {
                   setTempRadius(distanceRadiusKm || 10)
                   sliderPrevRef.current = distanceRadiusKm || 10
@@ -227,11 +281,13 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
           onClick={() => setShowRadiusSheet(false)}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Set distance radius"
         >
           <div
+            ref={dialogRef}
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="distance-title"
             onClick={(e) => e.stopPropagation()}
             className={isDark
               ? 'w-64 bg-neutral-900 rounded-2xl shadow-lg overflow-hidden p-4 border border-white/10 animate-fade-slide-in overscroll-contain'
@@ -239,7 +295,7 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
           >
             {/* Header */}
             <div className="text-center mb-3">
-              <h3 className={isDark ? 'text-white text-sm font-semibold' : 'text-gray-900 text-sm font-semibold'}>
+              <h3 id="distance-title" className={isDark ? 'text-white text-sm font-semibold' : 'text-gray-900 text-sm font-semibold'}>
                 Set Distance Radius
               </h3>
               <p className={isDark ? 'text-gray-400 text-xs mt-0.5' : 'text-gray-600 text-xs mt-0.5'}>
@@ -251,6 +307,7 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
             <div className="mb-4">
               <div className="relative">
                 <input
+                  ref={sliderRef}
                   type="range"
                   min={MIN_RADIUS_KM}
                   max={MAX_RADIUS_KM}
@@ -275,6 +332,10 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
                   }}
                   className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${isDark ? 'bg-gray-700 slider-thumb-dark' : 'bg-gray-200 slider-thumb-light'}`}
                   style={{ touchAction: 'pan-x' }}
+                  aria-label="Distance in kilometers"
+                  aria-valuemin={MIN_RADIUS_KM}
+                  aria-valuemax={MAX_RADIUS_KM}
+                  aria-valuenow={tempRadius}
                 />
                 {/* Range labels */}
                 <div className="flex justify-between text-[11px] mt-2">

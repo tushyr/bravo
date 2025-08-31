@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { haptics } from '../utils/haptics'
 
 export default function useLongPress(
   onLongPress,
@@ -59,6 +60,7 @@ export default function useLongPress(
     timerRef.current = setTimeout(() => {
       isLongPress.current = true
       setAction('longpress')
+      try { haptics.impact('heavy') } catch {}
       onLongPress?.(event)
     }, threshold)
   }, [onLongPress, threshold, captureEvent])

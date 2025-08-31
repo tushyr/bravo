@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { LuMenu as Menu, LuX as X, LuClock as Clock, LuMapPin as MapPin } from 'react-icons/lu'
 import { areas, shopTypes } from '../data/mockData'
+import { haptics } from '../utils/haptics'
 
 const CompactFilterBar = ({ filters, setFilters, totalShops }) => {
   const [isOpen, setIsOpen] = useState(false)
@@ -10,6 +11,7 @@ const CompactFilterBar = ({ filters, setFilters, totalShops }) => {
   }
 
   const toggleMenu = () => {
+    try { haptics.light() } catch {}
     setIsOpen(!isOpen)
   }
 
@@ -31,7 +33,10 @@ const CompactFilterBar = ({ filters, setFilters, totalShops }) => {
               <input
                 type="checkbox"
                 checked={filters.openNow}
-                onChange={(e) => handleFilterChange('openNow', e.target.checked)}
+                onChange={(e) => {
+                  try { haptics.toggle(e.target.checked) } catch {}
+                  handleFilterChange('openNow', e.target.checked)
+                }}
                 className="sr-only"
               />
               <div className={`relative w-12 h-6 rounded-full transition-all duration-300 ${
@@ -101,7 +106,10 @@ const CompactFilterBar = ({ filters, setFilters, totalShops }) => {
                   <label className="block text-sm font-semibold text-gray-700 mb-3">Type</label>
                   <select
                     value={filters.type}
-                    onChange={(e) => handleFilterChange('type', e.target.value)}
+                    onChange={(e) => {
+                      try { haptics.selection() } catch {}
+                      handleFilterChange('type', e.target.value)
+                    }}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 text-gray-700 font-medium"
                   >
                     <option value="all">All Types</option>
@@ -118,7 +126,10 @@ const CompactFilterBar = ({ filters, setFilters, totalShops }) => {
                   <label className="block text-sm font-semibold text-gray-700 mb-3">Area</label>
                   <select
                     value={filters.area}
-                    onChange={(e) => handleFilterChange('area', e.target.value)}
+                    onChange={(e) => {
+                      try { haptics.selection() } catch {}
+                      handleFilterChange('area', e.target.value)
+                    }}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 text-gray-700 font-medium"
                   >
                     <option value="all">All Areas</option>
@@ -133,6 +144,7 @@ const CompactFilterBar = ({ filters, setFilters, totalShops }) => {
                 {/* Clear Filters */}
                 <button
                   onClick={() => {
+                    try { haptics.impact('medium') } catch {}
                     setFilters({ openNow: false, type: 'all', area: 'all' })
                     setIsOpen(false)
                   }}

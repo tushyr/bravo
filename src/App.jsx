@@ -32,7 +32,7 @@ function App() {
     // Ensure a read flag exists for each notification
     return Array.isArray(parsed) ? parsed.map(n => ({ ...n, read: !!n.read })) : []
   })
-  const [showNotifications, setShowNotifications] = useState(false) // no longer used for panel, kept to avoid churn
+  
   const [reminders, setReminders] = useState(() => {
     const saved = localStorage.getItem('reminders')
     return saved ? JSON.parse(saved) : []

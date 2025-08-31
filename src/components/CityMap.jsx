@@ -1,30 +1,82 @@
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { LuX as X, LuMapPin as MapPin } from 'react-icons/lu'
+import { lockScroll } from '../utils/scrollLock'
+import { haptics } from '../utils/haptics'
 
 const CityMap = ({ isOpen, onClose, allShops, filteredShops, activeCategory, openNowFilter, isDark = false }) => {
   const modalRef = useRef(null)
+  const closeButtonRef = useRef(null)
+  const previouslyFocusedRef = useRef(null)
 
   useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') onClose()
+    if (!isOpen) return
+
+    previouslyFocusedRef.current = document.activeElement
+
+    const release = lockScroll()
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation()
+        try { haptics.light() } catch {}
+        onClose()
+        return
+      }
+      if (e.key === 'Tab' && modalRef.current) {
+        const focusable = modalRef.current.querySelectorAll(
+          'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+        const elements = Array.from(focusable).filter(el => el.offsetParent !== null)
+        if (elements.length === 0) return
+        const first = elements[0]
+        const last = elements[elements.length - 1]
+        const active = document.activeElement
+        if (e.shiftKey) {
+          if (active === first || !modalRef.current.contains(active)) {
+            e.preventDefault()
+            last.focus()
+          }
+        } else {
+          if (active === last || !modalRef.current.contains(active)) {
+            e.preventDefault()
+            first.focus()
+          }
+        }
+      }
     }
+
     const handleClickOutside = (e) => {
       if (modalRef.current && !modalRef.current.contains(e.target)) {
+        try { haptics.light() } catch {}
         onClose()
       }
     }
 
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape)
-      document.addEventListener('mousedown', handleClickOutside)
-      document.body.style.overflow = 'hidden'
-    }
+    // Move initial focus into the dialog
+    setTimeout(() => {
+      const target = closeButtonRef.current
+      if (target && modalRef.current?.contains(target)) {
+        target.focus()
+      } else if (modalRef.current) {
+        const focusable = modalRef.current.querySelectorAll(
+          'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+        const elements = Array.from(focusable).filter(el => el.offsetParent !== null)
+        elements[0]?.focus()
+      }
+    }, 0)
+
+    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('mousedown', handleClickOutside)
 
     return () => {
-      document.removeEventListener('keydown', handleEscape)
+      document.removeEventListener('keydown', handleKeyDown)
       document.removeEventListener('mousedown', handleClickOutside)
-      document.body.style.overflow = 'unset'
+      release()
+      try {
+        previouslyFocusedRef.current && previouslyFocusedRef.current.focus()
+      } catch {}
     }
   }, [isOpen, onClose])
 
@@ -75,9 +127,9 @@ const CityMap = ({ isOpen, onClose, allShops, filteredShops, activeCategory, ope
   if (!isOpen) return null
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 md:p-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 md:p-4 overscroll-contain">
       {/* Backdrop */}
-      <div className={isDark ? 'absolute inset-0 bg-black/80 backdrop-blur-sm' : 'absolute inset-0 bg-black/50 backdrop-blur-sm'} />
+      <div className={isDark ? 'absolute inset-0 bg-black/80 backdrop-blur-sm' : 'absolute inset-0 bg-black/50 backdrop-blur-sm'} onClick={() => { try { haptics.light() } catch {}; onClose() }} />
       
       {/* Modal */}
       <div
@@ -113,11 +165,13 @@ const CityMap = ({ isOpen, onClose, allShops, filteredShops, activeCategory, ope
             )}
           </div>
           <button
-            onClick={onClose}
+            ref={closeButtonRef}
+            onClick={() => { try { haptics.light() } catch {}; onClose() }}
             className={isDark 
               ? 'p-2 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors'
               : 'p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors'}
             aria-label="Close city map"
+            type="button"
           >
             <X className="h-6 w-6" />
           </button>

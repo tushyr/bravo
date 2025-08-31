@@ -1,30 +1,36 @@
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { LuX as X, LuMapPin as MapPin, LuStar as Star, LuNavigation as Navigation } from 'react-icons/lu'
+import { lockScroll } from '../utils/scrollLock'
+import { haptics } from '../utils/haptics'
 
 const NearbyMap = ({ isOpen, onClose, centerShop, allShops, isDark = false }) => {
   const modalRef = useRef(null)
 
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') {
+        try { haptics.light() } catch {}
+        onClose()
+      }
     }
     const handleClickOutside = (e) => {
       if (modalRef.current && !modalRef.current.contains(e.target)) {
+        try { haptics.light() } catch {}
         onClose()
       }
     }
 
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape)
-      document.addEventListener('mousedown', handleClickOutside)
-      document.body.style.overflow = 'hidden'
-    }
+    if (!isOpen) return
+
+    const release = lockScroll()
+    document.addEventListener('keydown', handleEscape)
+    document.addEventListener('mousedown', handleClickOutside)
 
     return () => {
       document.removeEventListener('keydown', handleEscape)
       document.removeEventListener('mousedown', handleClickOutside)
-      document.body.style.overflow = 'unset'
+      release()
     }
   }, [isOpen, onClose])
 
@@ -59,9 +65,9 @@ const NearbyMap = ({ isOpen, onClose, centerShop, allShops, isDark = false }) =>
   if (!isOpen) return null
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overscroll-contain">
       {/* Backdrop */}
-      <div className={isDark ? 'absolute inset-0 bg-black/80 backdrop-blur-sm' : 'absolute inset-0 bg-black/50 backdrop-blur-sm'} />
+      <div className={isDark ? 'absolute inset-0 bg-black/80 backdrop-blur-sm' : 'absolute inset-0 bg-black/50 backdrop-blur-sm'} onClick={() => { try { haptics.light() } catch {}; onClose() }} />
       
       {/* Modal */}
       <div
@@ -86,7 +92,7 @@ const NearbyMap = ({ isOpen, onClose, centerShop, allShops, isDark = false }) =>
             )}
           </div>
           <button
-            onClick={onClose}
+            onClick={() => { try { haptics.light() } catch {}; onClose() }}
             className={isDark 
               ? 'p-2 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors'
               : 'p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors'}
@@ -161,7 +167,7 @@ const NearbyMap = ({ isOpen, onClose, centerShop, allShops, isDark = false }) =>
                   </div>
                   
                   <button
-                    onClick={() => openInMaps(shop)}
+                    onClick={() => { try { haptics.impact('medium') } catch {}; openInMaps(shop) }}
                     className={isDark 
                       ? 'ml-4 p-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-colors'
                       : 'ml-4 p-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-colors'}

@@ -4,12 +4,13 @@
   - Network-first for navigations, cache-first for static assets
 */
 
-const CACHE_NAME = 'tb-pwa-v3';
+const CACHE_NAME = 'tb-pwa-v4';
 const ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/tb_tab.svg',
+  '/tb_tab.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/apple-touch-icon.png'
