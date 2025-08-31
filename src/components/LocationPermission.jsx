@@ -43,12 +43,11 @@ const LocationPermission = ({ isDark = false, onLocationEnabled }) => {
         lat: position.coords.latitude,
         lng: position.coords.longitude
       })
-    } catch (error) {
-      console.error('Location permission denied:', error)
+    } catch {
       try {
         haptics.error() // Error pattern when denied
       } catch {}
-      // Pick a random new message on denial/failure (no immediate repeats)
+      // On denial/failure, pick a random new message (no immediate repeats)
       setCurrentMessageIndex((prev) => getRandomDifferentIndex(prev))
     }
   }

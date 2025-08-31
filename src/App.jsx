@@ -120,37 +120,95 @@ function App() {
 
   // Check for existing location permission on app start
   useEffect(() => {
+    let permStatus
     const checkLocationPermission = async () => {
       try {
-        const result = await navigator.permissions.query({ name: 'geolocation' })
-        if (result.state === 'granted') {
-          // Get current position if already granted
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              setUserLocation({
-                lat: position.coords.latitude,
-                lng: position.coords.longitude
-              })
-              setHasLocationPermission(true)
-              setDistanceRadiusKm(null)
-              loadShopsData()
-            },
-            () => {
-              // Permission granted but location failed
-              setHasLocationPermission(false)
-            }
-          )
-        } else {
+        // Safeguard for environments without Permissions API or geolocation
+        if (!('geolocation' in navigator)) {
           setHasLocationPermission(false)
           setIsLoading(false)
+          return
         }
+
+        if (!('permissions' in navigator)) {
+          // Fallback path: remember last successful grant in localStorage
+          const wasGranted = localStorage.getItem('geoPermissionGranted') === 'true'
+          if (wasGranted) {
+            setHasLocationPermission(true)
+            loadShopsData()
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude })
+                setDistanceRadiusKm(null)
+              },
+              (err) => {
+                // If permission is denied now, revert and show prompt
+                if (err && err.code === 1 /* PERMISSION_DENIED */) {
+                  localStorage.setItem('geoPermissionGranted', 'false')
+                  setHasLocationPermission(false)
+                  setIsLoading(false)
+                }
+              },
+              { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+            )
+          } else {
+            setHasLocationPermission(false)
+            setIsLoading(false)
+          }
+          return
+        }
+
+        permStatus = await navigator.permissions.query({ name: 'geolocation' })
+
+        const handlePermissionState = (state) => {
+          if (state === 'granted') {
+            // Immediately consider permission granted so we don't show the prompt
+            setHasLocationPermission(true)
+            try { localStorage.setItem('geoPermissionGranted', 'true') } catch {}
+            // Load data right away; we'll enhance with distance when we get coords
+            loadShopsData()
+
+            // Try to fetch current position with a bounded timeout
+            const timer = setTimeout(() => { /* fail-safe: don't block UI */ }, 10000)
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                clearTimeout(timer)
+                setUserLocation({
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude
+                })
+                setDistanceRadiusKm(null)
+              },
+              () => {
+                clearTimeout(timer)
+                // Keep permission as granted; just no position available
+              },
+              { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+            )
+          } else if (state === 'prompt') {
+            // Not decided yet: show the in-app prompt
+            setHasLocationPermission(false)
+            setIsLoading(false)
+          } else {
+            // denied
+            setHasLocationPermission(false)
+            setIsLoading(false)
+            try { localStorage.setItem('geoPermissionGranted', 'false') } catch {}
+          }
+        }
+
+        handlePermissionState(permStatus.state)
+        permStatus.onchange = () => handlePermissionState(permStatus.state)
       } catch (error) {
-        // Fallback for browsers that don't support permissions API
+        // Fallback for browsers where query throws
         setHasLocationPermission(false)
         setIsLoading(false)
       }
     }
     checkLocationPermission()
+    return () => {
+      if (permStatus) permStatus.onchange = null
+    }
   }, [])
 
   // Load shops data (try API, fallback to mock)
@@ -178,6 +236,7 @@ function App() {
     setUserLocation(location)
     setHasLocationPermission(true)
     setDistanceRadiusKm(null)
+    try { localStorage.setItem('geoPermissionGranted', 'true') } catch {}
     loadShopsData()
   }
 

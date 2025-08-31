@@ -9,8 +9,11 @@ import {
   LuMap as Map
 } from 'react-icons/lu'
 import { haptics } from '../utils/haptics'
+import useLongPress from '../hooks/useLongPress'
+import ExpandedShopCard from './ExpandedShopCard'
 
 const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetReminder, hasReminder = false, isDark = false, isLoading = false, onShowNearbyMap, activeCategory = 'all' }) => {
+  const [showExpandedCard, setShowExpandedCard] = useState(false)
   const isOpen = () => {
     const now = new Date()
     const currentHour = now.getHours()
@@ -53,6 +56,25 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
   const menuRef = useRef(null)
   const buttonRef = useRef(null)
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 })
+
+  // Long press handlers
+  const handleLongPress = () => {
+    try { 
+      haptics.impact('heavy') // Heavy haptic for long press
+    } catch {}
+    // Ensure any open reminder menu is closed before expanding
+    setShowReminderMenu(false)
+    setShowExpandedCard(true)
+  }
+
+  const handleClick = (e) => {
+    // Desktop: open on mouse click. Mobile: keep long-press to open.
+    // useLongPress passes the originating event to onClick (mouseup or touchend)
+    if (e?.type && e.type.startsWith('touch')) return
+    setShowExpandedCard(true)
+  }
+
+  const longPressHandlers = useLongPress(handleLongPress, handleClick, { threshold: 600 })
 
   // Segmented slider interaction (drag/keys)
   const startXRef = useRef(null)
@@ -124,43 +146,54 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
   }
 
   return (
-    <div className={`${isLoading ? 'card-shimmer' : ''} ${getThemedCardStyle()} h-full`}>
-      <div className="p-[18px] lg:p-[17px] flex flex-col h-full min-h-[176px] lg:min-h-[172px]">
+    <>
+      <div 
+        className={`${isLoading ? 'card-shimmer' : ''} ${getThemedCardStyle()} h-full cursor-pointer select-none ${longPressHandlers.isPressed ? 'long-press-active' : ''}`}
+        {...longPressHandlers.handlers}
+      >
+        <div className="p-[18px] lg:p-[17px] flex flex-col h-full min-h-[176px] lg:min-h-[172px]">
         {/* Header with name and actions */}
         <div className="flex items-start justify-between mb-4">
           <h3 className={isDark ? 'text-[17px] lg:text-[16.5px] font-semibold text-white leading-tight lg-clamp-1' : 'text-[17px] lg:text-[16.5px] font-semibold text-gray-900 leading-tight lg-clamp-1'}>{shop.name}</h3>
           <div className="flex items-center gap-2 relative z-50">
             <button
               ref={buttonRef}
-              onClick={() => setShowReminderMenu((s) => {
-                const next = !s
-                if (next && buttonRef.current) {
-                  const rect = buttonRef.current.getBoundingClientRect()
-                  // Position below and align right edge with button; clamp to viewport
-                  const width = 256 // tailwind w-64
-                  const margin = 8
-                  const maxLeft = Math.max(margin, window.innerWidth - width - margin)
-                  const desiredLeft = rect.right - width
-                  const left = Math.min(Math.max(margin, desiredLeft), maxLeft)
-                  const top = rect.bottom + 8
-                  setMenuPos({ top, left })
-                }
-                return next
-              })}
-              className={isDark ? `p-2 rounded-full bg-white/5 backdrop-blur-md hover:bg-white/10 transition-colors ripple active:scale-95 transition-transform ${hasReminder ? 'text-yellow-400' : 'text-gray-400'}` : `p-2 rounded-full bg-white/20 backdrop-blur-md hover:bg-white/30 transition-colors ripple active:scale-95 transition-transform ${hasReminder ? 'text-yellow-500' : 'text-gray-600'}`}
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowReminderMenu((s) => {
+                  const next = !s
+                  if (next && buttonRef.current) {
+                    const rect = buttonRef.current.getBoundingClientRect()
+                    // Position below and align right edge with button; clamp to viewport
+                    const width = 256 // tailwind w-64
+                    const margin = 8
+                    const maxLeft = Math.max(margin, window.innerWidth - width - margin)
+                    const desiredLeft = rect.right - width
+                    const left = Math.min(Math.max(margin, desiredLeft), maxLeft)
+                    const top = rect.bottom + 8
+                    setMenuPos({ top, left })
+                  }
+                  return next
+                })
+              }}
+              className={isDark ? `p-2 rounded-full bg-white/5 backdrop-blur-md hover:bg-white/10 transition-colors ripple active:scale-95 transition-transform hover-bounce ${hasReminder ? 'text-yellow-400' : 'text-gray-400'}` : `p-2 rounded-full bg-white/20 backdrop-blur-md hover:bg-white/30 transition-colors ripple active:scale-95 transition-transform hover-bounce ${hasReminder ? 'text-yellow-500' : 'text-gray-600'}`}
               title={hasReminder ? 'Reminder set' : 'Set reminder'}
               aria-haspopup="dialog"
               aria-expanded={showReminderMenu}
             >
-              {hasReminder ? <BellRing className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
+              {hasReminder ? <BellRing className="h-5 w-5 pulse-glow-amber" /> : <Bell className="h-5 w-5" />}
             </button>
             <button
-              onClick={() => { onToggleFavorite(shop.id); try { haptics.toggle(!isFavorite) } catch {} }}
+              onClick={(e) => {
+                e.stopPropagation()
+                onToggleFavorite(shop.id)
+                try { haptics.toggle(!isFavorite) } catch {}
+              }}
               className={isDark
-                ? `p-2 rounded-full bg-white/5 backdrop-blur-md ${isFavorite ? 'text-yellow-400' : 'text-rose-400'} hover:bg-white/10 transition-colors ripple active:scale-95 transition-transform`
-                : `p-2 rounded-full bg-white/20 backdrop-blur-md ${isFavorite ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-700 hover:text-red-500'} hover:bg-white/30 transition-colors ripple active:scale-95 transition-transform`}
+                ? `p-2 rounded-full bg-white/5 backdrop-blur-md ${isFavorite ? 'text-yellow-400' : 'text-rose-400'} hover:bg-white/10 transition-colors ripple active:scale-95 transition-transform hover-bounce`
+                : `p-2 rounded-full bg-white/20 backdrop-blur-md ${isFavorite ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-700 hover:text-red-500'} hover:bg-white/30 transition-colors ripple active:scale-95 transition-transform hover-bounce`}
             >
-              <Heart className="h-4 w-4" />
+              <Heart className={`h-5 w-5 ${isFavorite ? 'pulse-glow-rose' : ''}`} />
             </button>
             {showReminderMenu && createPortal(
               (
@@ -171,7 +204,7 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
                   className={isDark
                     ? 'w-64 bg-neutral-900 rounded-3xl shadow-lg overflow-hidden p-5 border border-white/10 animate-fade-slide-in'
                     : 'w-64 bg-white rounded-3xl shadow-md border border-gray-200 overflow-hidden p-5 animate-fade-slide-in'}
-                  style={{ position: 'fixed', top: `${menuPos.top}px`, left: `${menuPos.left}px`, zIndex: 9999 }}
+                  style={{ position: 'fixed', top: `${menuPos.top}px`, left: `${menuPos.left}px`, zIndex: 40 }}
                 >
                   <span className="sr-only">Set reminder</span>
 
@@ -333,13 +366,16 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
               {getStatusText()}
             </span>
             <button
-              onClick={() => onShowNearbyMap && onShowNearbyMap(shop)}
+              onClick={(e) => {
+                e.stopPropagation()
+                onShowNearbyMap && onShowNearbyMap(shop)
+              }}
               className={isDark 
-                ? 'p-1.5 rounded-full bg-white/5 backdrop-blur-md text-blue-400 hover:bg-white/10 transition-colors ripple active:scale-95'
-                : 'p-1.5 rounded-full bg-white/20 backdrop-blur-md text-blue-600 hover:bg-white/30 transition-colors ripple active:scale-95'}
+                ? 'p-1.5 rounded-full bg-white/5 backdrop-blur-md text-blue-400 hover:bg-white/10 transition-colors ripple active:scale-95 hover-bounce'
+                : 'p-1.5 rounded-full bg-white/20 backdrop-blur-md text-blue-600 hover:bg-white/30 transition-colors ripple active:scale-95 hover-bounce'}
               title="Show nearby liquor stores & bars"
             >
-              <Map className="h-3.5 w-3.5" />
+              <Map className="h-4 w-4" />
             </button>
           </div>
           <span className={isDark ? 'text-xs text-gray-400' : 'text-xs text-gray-600'}>
@@ -375,8 +411,22 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
 
         {/* Speciality */}
         <p className={isDark ? 'text-[11px] lg:text-[10.5px] text-gray-400 leading-snug lg-clamp-1' : 'text-[11px] lg:text-[10.5px] text-gray-600 leading-snug lg-clamp-1'}>{shop.speciality}</p>
+        </div>
       </div>
-    </div>
+
+      {/* Expanded Card Modal */}
+      <ExpandedShopCard
+        shop={shop}
+        isOpen={showExpandedCard}
+        onClose={() => setShowExpandedCard(false)}
+        isFavorite={isFavorite}
+        onToggleFavorite={onToggleFavorite}
+        onSetReminder={onSetReminder}
+        hasReminder={hasReminder}
+        onShowNearbyMap={onShowNearbyMap}
+        isDark={isDark}
+      />
+    </>
   )
 }
 

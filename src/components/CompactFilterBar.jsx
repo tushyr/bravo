@@ -22,7 +22,7 @@ const CompactFilterBar = ({ filters, setFilters, totalShops }) => {
           <div className="flex items-center space-x-4">
             <button
               onClick={toggleMenu}
-              className="p-2 rounded-full glass-chip-light text-purple-700 transition-all duration-200 ripple ripple-white active:scale-95"
+              className="p-2 rounded-full glass-chip-light text-purple-700 transition-all duration-200 ripple ripple-white active:scale-95 hover-bounce press-bounce"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -89,7 +89,7 @@ const CompactFilterBar = ({ filters, setFilters, totalShops }) => {
                 <h3 className="text-lg font-bold text-gray-900">Filters</h3>
                 <button
                   onClick={toggleMenu}
-                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors ripple ripple-white active:scale-95"
+                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors ripple ripple-white active:scale-95 hover-bounce press-bounce"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -136,7 +136,7 @@ const CompactFilterBar = ({ filters, setFilters, totalShops }) => {
                     setFilters({ openNow: false, type: 'all', area: 'all' })
                     setIsOpen(false)
                   }}
-                  className="w-full px-4 py-3 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-200 ripple ripple-white active:scale-95"
+                  className="w-full px-4 py-3 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-200 ripple ripple-white active:scale-95 hover-bounce press-bounce"
                 >
                   Clear All Filters
                 </button>

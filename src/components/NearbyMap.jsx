@@ -67,8 +67,8 @@ const NearbyMap = ({ isOpen, onClose, centerShop, allShops, isDark = false }) =>
       <div
         ref={modalRef}
         className={isDark 
-          ? 'relative w-full max-w-4xl max-h-[90vh] bg-neutral-900 rounded-3xl shadow-2xl border border-white/10 overflow-hidden'
-          : 'relative w-full max-w-4xl max-h-[90vh] bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden'}
+          ? 'relative w-full max-w-4xl max-h-[82dvh] md:max-h-[90vh] bg-neutral-900 rounded-3xl shadow-2xl border border-white/10 overflow-hidden'
+          : 'relative w-full max-w-4xl max-h-[82dvh] md:max-h-[90vh] bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden'}
         role="dialog"
         aria-modal="true"
         aria-labelledby="nearby-map-title"
@@ -97,11 +97,11 @@ const NearbyMap = ({ isOpen, onClose, centerShop, allShops, isDark = false }) =>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)] safe-area-bottom no-scrollbar">
+        <div className="p-6 overflow-y-auto h-[calc(82dvh-120px)] md:h-[calc(90vh-120px)] safe-area-bottom no-scrollbar">
           {/* Placeholder for future map integration */}
           <div className={isDark 
-            ? 'h-64 bg-neutral-800 rounded-2xl border border-white/10 flex items-center justify-center mb-6'
-            : 'h-64 bg-gray-100 rounded-2xl border border-gray-200 flex items-center justify-center mb-6'}>
+            ? 'h-48 md:h-64 bg-neutral-800 rounded-2xl border border-white/10 flex items-center justify-center mb-6'
+            : 'h-48 md:h-64 bg-gray-100 rounded-2xl border border-gray-200 flex items-center justify-center mb-6'}>
             <div className="text-center">
               <MapPin className={isDark ? 'h-12 w-12 text-gray-500 mx-auto mb-3' : 'h-12 w-12 text-gray-400 mx-auto mb-3'} />
               <p className={isDark ? 'text-gray-400 text-sm' : 'text-gray-600 text-sm'}>

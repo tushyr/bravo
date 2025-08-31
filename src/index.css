@@ -14,7 +14,7 @@ body {
 #root { min-height: 100dvh; background: #0f0f0f; }
 /* Reduce accidental zooming in PWA: allow panning but not pinch/double-tap */
 html, body {
-  touch-action: pan-x pan-y;
+  touch-action: pan-y;
   /* Prevent horizontal scrollbars globally */
   overflow-x: hidden;
   /* Hide scrollbars where the root scrolls (Firefox/IE/Edge Legacy) */
@@ -37,6 +37,7 @@ input, select, textarea {
   overflow-y: auto;
   overflow-x: hidden; /* ensure no horizontal bar even if inner content overflows */
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y; /* lock main scroller to vertical pan */
   background: #0f0f0f;
   overscroll-behavior-y: contain;
   /* Respect iOS safe areas (notch/dynamic island & home indicator) */
@@ -54,6 +55,12 @@ input, select, textarea {
   -ms-overflow-style: none; /* IE and Edge Legacy */
 }
 .app-scroll::-webkit-scrollbar { width: 0; height: 0; }
+
+/* Utility: explicitly allow panning in both directions inside a horiz scroller
+   This ensures vertical page scroll still works when swiping over the element */
+.allow-pan-x {
+  touch-action: pan-x pan-y;
+}
 
 /* Typography base and brand utilities */
 @layer base {
@@ -265,6 +272,13 @@ input, select, textarea {
   to { transform: translateY(0); }
 }
 
+/* Long press visual feedback */
+.long-press-active {
+  transform: scale(0.98);
+  filter: brightness(1.1);
+  transition: all 150ms ease-out;
+}
+
 /* Custom range slider styling */
 .slider-thumb-light {
   background: linear-gradient(135deg, #9333ea, #7c3aed);
@@ -393,13 +407,22 @@ input, select, textarea {
   transform: translateY(-1px);
 }
 
+.glass-chip-active:hover,
+.glass-chip-active-light:hover,
+.glass-chip-active-success:hover {
+  transform: translateY(-1px);
+}
+
 /* Respect reduced motion for new effects */
 @media (prefers-reduced-motion: reduce) {
   .glass-sheen::after { animation: none; opacity: 0.06; }
   .animate-fade-slide-in { animation: none; }
   .animate-float { animation: none; }
   .animate-slide-up { animation: none; }
-  .glass-chip:hover, .glass-chip-light:hover { transform: none; }
+  .animate-bounce-subtle { animation: none; }
+  .pulse-glow-rose, .pulse-glow-amber, .pulse-glow-blue { animation: none; }
+  .glass-chip:hover, .glass-chip-light:hover, .glass-chip-active:hover, .glass-chip-active-light:hover, .glass-chip-active-success:hover { transform: none; }
+  .hover-bounce:hover, .press-bounce:active { animation: none; }
 }
 .glass-chip:focus-visible,
 .glass-chip-active:focus-visible,
@@ -413,10 +436,49 @@ input, select, textarea {
     inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 .reduce-motion .glass-sheen::after { animation: none; opacity: 0.06; }
-.reduce-motion .glass-chip:hover, .reduce-motion .glass-chip-light:hover { transform: none; }
+.reduce-motion .glass-chip:hover, .reduce-motion .glass-chip-light:hover, .reduce-motion .glass-chip-active:hover, .reduce-motion .glass-chip-active-light:hover, .reduce-motion .glass-chip-active-success:hover { transform: none; }
 .reduce-motion .animate-fade-slide-in { animation: none; }
 .reduce-motion .animate-float { animation: none; }
 .reduce-motion .animate-slide-up { animation: none; }
+.reduce-motion .animate-bounce-subtle { animation: none; }
+.reduce-motion .pulse-glow-rose, .reduce-motion .pulse-glow-amber, .reduce-motion .pulse-glow-blue { animation: none; }
+
+/* Trigger subtle bounce only on hover or active via helpers */
+.hover-bounce:hover {
+  animation: bounce-subtle 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.press-bounce:active {
+  animation: bounce-subtle 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.reduce-motion .hover-bounce:hover, .reduce-motion .press-bounce:active { animation: none; }
+
+/* Subtle bounce on hover/tap for icons and chips */
+.animate-bounce-subtle {
+  animation: bounce-subtle 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes bounce-subtle {
+  0% { transform: translateY(0) scale(1); }
+  35% { transform: translateY(-2px) scale(1.03); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* Pulse glow accents for important icons (heart, bell, map) */
+.pulse-glow-rose { animation: glow-pulse-rose 1.8s ease-in-out infinite; }
+.pulse-glow-amber { animation: glow-pulse-amber 1.8s ease-in-out infinite; }
+.pulse-glow-blue { animation: glow-pulse-blue 1.8s ease-in-out infinite; }
+
+@keyframes glow-pulse-rose {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(244, 63, 94, 0)); }
+  50% { filter: drop-shadow(0 0 10px rgba(244, 63, 94, 0.45)); }
+}
+@keyframes glow-pulse-amber {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(234, 179, 8, 0)); }
+  50% { filter: drop-shadow(0 0 10px rgba(234, 179, 8, 0.45)); }
+}
+@keyframes glow-pulse-blue {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(0, 217, 255, 0)); }
+  50% { filter: drop-shadow(0 0 10px rgba(0, 217, 255, 0.45)); }
+}
 
 /* Desktop-only line clamp helpers */
 @media (min-width: 1024px) {

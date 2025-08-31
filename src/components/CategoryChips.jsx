@@ -69,7 +69,7 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
             setOpenNowFilter(next)
             try { haptics.toggle(next) } catch {}
           }}
-          className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-sm font-medium transition-all ripple ripple-white active:scale-95 ${
+          className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-sm font-medium transition-all ripple ripple-white active:scale-95 hover-bounce press-bounce ${
             openNowFilter
               ? 'glass-chip-active-success text-white'
               : (isDark
@@ -89,8 +89,8 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
             onShowCityMap && onShowCityMap()
           }}
           className={isDark
-            ? 'inline-flex items-center px-3.5 py-1.5 rounded-full text-sm font-medium glass-chip text-blue-300 transition-all ripple ripple-white active:scale-95'
-            : 'inline-flex items-center px-3.5 py-1.5 rounded-full text-sm font-medium glass-chip-light text-blue-600 transition-all ripple ripple-white active:scale-95'}
+            ? 'inline-flex items-center px-3.5 py-1.5 rounded-full text-sm font-medium glass-chip text-blue-300 transition-all ripple ripple-white active:scale-95 hover-bounce press-bounce'
+            : 'inline-flex items-center px-3.5 py-1.5 rounded-full text-sm font-medium glass-chip-light text-blue-600 transition-all ripple ripple-white active:scale-95 hover-bounce press-bounce'}
           title="View city map with all locations"
         >
           <Map className="h-4 w-4 mr-2" />
@@ -104,23 +104,23 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
             try { haptics.toggle(next) } catch {}
           }}
           className={isDark
-            ? `inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium ${favoritesOnly ? 'glass-chip-active text-white' : 'glass-chip text-gray-200'} transition-all ripple ripple-white active:scale-95`
-            : `inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium ${favoritesOnly ? 'glass-chip-active-light text-white' : 'glass-chip-light text-gray-800'} transition-all ripple ripple-white active:scale-95`}
+            ? `inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium ${favoritesOnly ? 'glass-chip-active text-white' : 'glass-chip text-gray-200'} transition-all ripple ripple-white active:scale-95 hover-bounce press-bounce`
+            : `inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium ${favoritesOnly ? 'glass-chip-active-light text-white' : 'glass-chip-light text-gray-800'} transition-all ripple ripple-white active:scale-95 hover-bounce press-bounce`}
           title={favoritesOnly ? 'Showing favorites' : 'Show favorites only'}
           aria-pressed={favoritesOnly}
         >
-          <Heart className={`h-4 w-4 ${favoritesOnly ? '' : (isDark ? 'text-gray-300' : 'text-gray-600')}`} />
+          <Heart className={`h-5 w-5 ${favoritesOnly ? 'pulse-glow-rose' : (isDark ? 'text-gray-300' : 'text-gray-600')}`} />
           <span className="sr-only">Favorites</span>
         </button>
       </div>
 
       {/* Category Chips */}
-      <div className="flex gap-2 overflow-x-auto no-scrollbar whitespace-nowrap px-1 py-1 overscroll-contain lg:flex-wrap lg:whitespace-normal lg:overflow-visible">
+      <div className="flex gap-2 overflow-x-auto no-scrollbar whitespace-nowrap px-1 py-1 overscroll-contain allow-pan-x lg:flex-wrap lg:whitespace-normal lg:overflow-visible">
         {categories.map((category, index) => (
           <button
             key={category.id}
             onClick={() => { try { haptics.selection() } catch {}; setActiveCategory(category.id) }}
-            className={`px-3.5 py-1.5 lg:px-4 lg:py-2 rounded-full text-[13px] lg:text-sm font-poppins font-semibold whitespace-nowrap transition-all duration-300 ease-out ripple active:scale-95 ${
+            className={`px-3.5 py-1.5 lg:px-4 lg:py-2 rounded-full text-[13px] lg:text-sm font-poppins font-semibold whitespace-nowrap transition-all duration-300 ease-out ripple active:scale-95 hover-bounce press-bounce ${
               activeCategory === category.id
                 ? (isDark
                     ? 'glass-chip-active text-white'
@@ -146,7 +146,7 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
           {/* Any (disable proximity) */}
           {(() => {
             const selected = isAnySelected
-            const common = 'px-3 py-1.5 text-xs lg:px-3.5 lg:py-1.5 lg:text-[13px] rounded-full transition-all duration-300 ease-out font-poppins font-medium ripple active:scale-95'
+            const common = 'px-3 py-1.5 text-xs lg:px-3.5 lg:py-1.5 lg:text-[13px] rounded-full transition-all duration-300 ease-out font-poppins font-medium ripple active:scale-95 hover-bounce press-bounce'
             const cls = selected
               ? (isDark
                   ? `glass-chip-active text-white ${common}`
@@ -169,7 +169,7 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
           {/* Preset distances */}
           {[5, 10, 50].map((km, index) => {
             const selected = (showDistanceSelection && distanceRadiusKm === km) || (maskDistanceSelection && distanceRadiusKm === km)
-            const common = 'px-3 py-1.5 text-xs lg:px-3.5 lg:py-1.5 lg:text-[13px] rounded-full transition-all duration-300 ease-out font-poppins font-medium ripple active:scale-95'
+            const common = 'px-3 py-1.5 text-xs lg:px-3.5 lg:py-1.5 lg:text-[13px] rounded-full transition-all duration-300 ease-out font-poppins font-medium ripple active:scale-95 hover-bounce press-bounce'
             const cls = selected
               ? (isDark
                   ? `glass-chip-active text-white ${common}`
@@ -195,7 +195,7 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
           {/* Custom radius button */}
           {(() => {
             const selected = isCustomSelected
-            const common = 'px-3 py-1.5 text-xs lg:px-3.5 lg:py-1.5 lg:text-[13px] rounded-full transition-all duration-300 ease-out font-poppins font-medium ripple active:scale-95'
+            const common = 'px-3 py-1.5 text-xs lg:px-3.5 lg:py-1.5 lg:text-[13px] rounded-full transition-all duration-300 ease-out font-poppins font-medium ripple active:scale-95 hover-bounce press-bounce'
             const cls = selected
               ? (isDark
                   ? `glass-chip-active text-white ${common}`
@@ -289,8 +289,8 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
               <button
                 onClick={() => { setShowRadiusSheet(false) }}
                 className={isDark
-                  ? 'flex-1 py-2 px-3 bg-white/10 text-gray-200 rounded-xl text-sm font-medium transition-colors hover:bg-white/20'
-                  : 'flex-1 py-2 px-3 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium transition-colors hover:bg-gray-200'}
+                  ? 'flex-1 py-2 px-3 bg-white/10 text-gray-200 rounded-xl text-sm font-medium transition-colors hover:bg-white/20 hover-bounce press-bounce'
+                  : 'flex-1 py-2 px-3 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium transition-colors hover:bg-gray-200 hover-bounce press-bounce'}
               >
                 Cancel
               </button>
@@ -301,8 +301,8 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
                   try { haptics.success() } catch {}
                 }}
                 className={isDark
-                  ? 'flex-1 py-2 px-3 bg-rose-600 text-white rounded-xl text-sm font-medium transition-colors hover:bg-rose-700'
-                  : 'flex-1 py-2 px-3 bg-purple-600 text-white rounded-xl text-sm font-medium transition-colors hover:bg-purple-700'}
+                  ? 'flex-1 py-2 px-3 bg-rose-600 text-white rounded-xl text-sm font-medium transition-colors hover:bg-rose-700 hover-bounce press-bounce'
+                  : 'flex-1 py-2 px-3 bg-purple-600 text-white rounded-xl text-sm font-medium transition-colors hover:bg-purple-700 hover-bounce press-bounce'}
               >
                 Apply
               </button>
