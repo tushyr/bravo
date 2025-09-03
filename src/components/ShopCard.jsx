@@ -34,9 +34,40 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
     : null
 
   const getStatusText = () => {
-    if (shop.userReported === 'closed') return 'Reported Closed'
-    if (shop.userReported === 'open') return 'Reported Open'
-    return isOpen() ? 'Open Now' : 'Closed'
+    const info = getStatusInfo()
+    return info.text
+  }
+
+  const formatTimeAgo = (iso) => {
+    if (!iso) return null
+    const diff = Date.now() - new Date(iso).getTime()
+    if (diff < 60000) return 'just now'
+    const m = Math.floor(diff / 60000)
+    if (m < 60) return `${m}m`
+    const h = Math.floor(m / 60)
+    if (h < 24) return `${h}h`
+    const d = Math.floor(h / 24)
+    return `${d}d`
+  }
+
+  const getStatusInfo = () => {
+    const sum = shop?.reportSummary
+    if (sum && (sum.openCount > 0 || sum.closedCount > 0)) {
+      const votes = (sum.openCount || 0) + (sum.closedCount || 0)
+      const recency = formatTimeAgo(sum.lastReportedAt)
+      const isOpenConsensus = sum.status === 'open'
+      const base = isOpenConsensus ? 'Reported Open' : 'Reported Closed'
+      const suffix = votes ? ` (${votes}${recency ? `, ${recency} ago` : ''})` : ''
+      return { text: `${base}${suffix}`, isOpen: isOpenConsensus }
+    }
+
+    if (shop.userReported === 'open' || shop.userReported === 'closed') {
+      const isOpenFlag = shop.userReported === 'open'
+      return { text: isOpenFlag ? 'Reported Open' : 'Reported Closed', isOpen: isOpenFlag }
+    }
+
+    const liveOpen = isOpen()
+    return { text: liveOpen ? 'Open Now' : 'Closed', isOpen: liveOpen }
   }
 
   const openInMaps = () => {
@@ -355,13 +386,17 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
         {/* Status and type */}
         <div className="flex items-center space-x-3 mb-3">
           <div className="flex items-center gap-2">
-            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-              shop.userReported === 'closed' || !isOpen() 
-                ? (isDark ? 'bg-rose-600/70 text-white' : 'bg-red-600/70 text-white') 
-                : (isDark ? 'bg-green-600/70 text-white' : 'bg-green-600/70 text-white')
-            }`}>
-              {getStatusText()}
-            </span>
+            {(() => {
+              const status = getStatusInfo()
+              const cls = status.isOpen
+                ? (isDark ? 'bg-green-600/70 text-white' : 'bg-green-600/70 text-white')
+                : (isDark ? 'bg-rose-600/70 text-white' : 'bg-red-600/70 text-white')
+              return (
+                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${cls}`}>
+                  {status.text}
+                </span>
+              )
+            })()}
             <button
               onClick={(e) => {
                 e.stopPropagation()
