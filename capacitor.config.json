@@ -1,0 +1,14 @@
+{
+  "appId": "com.thekabar.app",
+  "appName": "ThekaBar",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, lazy, Suspense, memo } from 'react'
 import { createPortal } from 'react-dom'
 import {
   LuMapPin as MapPin,
@@ -10,7 +10,7 @@ import {
 } from 'react-icons/lu'
 import { haptics } from '../utils/haptics'
 import useLongPress from '../hooks/useLongPress'
-import ExpandedShopCard from './ExpandedShopCard'
+const ExpandedShopCard = lazy(() => import('./ExpandedShopCard'))
 
 const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetReminder, hasReminder = false, isDark = false, isLoading = false, onShowNearbyMap, activeCategory = 'all' }) => {
   const [showExpandedCard, setShowExpandedCard] = useState(false)
@@ -71,7 +71,7 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
   }
 
   const openInMaps = () => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${shop.coordinates.lat},${shop.coordinates.lng}&destination_place_id=${shop.name}`
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${shop.coordinates.lat},${shop.coordinates.lng}`
     window.open(url, '_blank')
   }
 
@@ -448,19 +448,21 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
       </div>
 
       {/* Expanded Card Modal */}
-      <ExpandedShopCard
-        shop={shop}
-        isOpen={showExpandedCard}
-        onClose={() => setShowExpandedCard(false)}
-        isFavorite={isFavorite}
-        onToggleFavorite={onToggleFavorite}
-        onSetReminder={onSetReminder}
-        hasReminder={hasReminder}
-        onShowNearbyMap={onShowNearbyMap}
-        isDark={isDark}
-      />
+      <Suspense fallback={null}>
+        <ExpandedShopCard
+          shop={shop}
+          isOpen={showExpandedCard}
+          onClose={() => setShowExpandedCard(false)}
+          isFavorite={isFavorite}
+          onToggleFavorite={onToggleFavorite}
+          onSetReminder={onSetReminder}
+          hasReminder={hasReminder}
+          onShowNearbyMap={onShowNearbyMap}
+          isDark={isDark}
+        />
+      </Suspense>
     </>
   )
 }
 
-export default ShopCard
+export default memo(ShopCard)

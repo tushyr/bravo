@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo, memo } from 'react'
 import { createPortal } from 'react-dom'
 import {
   LuX as X,
@@ -14,7 +14,7 @@ import {
   LuNavigation as Navigation,
   LuCreditCard as CreditCard,
   LuCar as Car,
-  LuShield as Shield
+  
 } from 'react-icons/lu'
 import { haptics } from '../utils/haptics'
 import { lockScroll } from '../utils/scrollLock'
@@ -42,6 +42,10 @@ const ExpandedShopCard = ({
   const reminderCloseButtonRef = useRef(null)
   const prevFocusReminderRef = useRef(null)
 
+  // Keep mounted during closing animation
+  const [rendered, setRendered] = useState(isOpen)
+  const [closing, setClosing] = useState(false)
+
   const isShopOpen = () => {
     const now = new Date()
     const currentHour = now.getHours()
@@ -62,12 +66,13 @@ const ExpandedShopCard = ({
     return isShopOpen() ? 'Open Now' : 'Closed'
   }
 
-  const distanceText = (shop && typeof shop.distanceKm === 'number' && isFinite(shop.distanceKm))
-    ? (shop.distanceKm < 10 ? `${shop.distanceKm.toFixed(1)} km` : `${Math.round(shop.distanceKm)} km`)
-    : null
+  const distanceText = useMemo(() => {
+    if (!shop || typeof shop.distanceKm !== 'number' || !isFinite(shop.distanceKm)) return null
+    return shop.distanceKm < 10 ? `${shop.distanceKm.toFixed(1)} km` : `${Math.round(shop.distanceKm)} km`
+  }, [shop?.distanceKm])
 
   const openInMaps = () => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${shop.coordinates.lat},${shop.coordinates.lng}&destination_place_id=${shop.name}`
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${shop.coordinates.lat},${shop.coordinates.lng}`
     window.open(url, '_blank')
     try { haptics.success() } catch {}
   }
@@ -116,12 +121,24 @@ const ExpandedShopCard = ({
     try { haptics.success() } catch {}
   }
 
-  // Lock scroll using centralized helper when modal is open
+  // Manage mount/unmount and scroll locking around animations
   useEffect(() => {
-    if (!isOpen) return
-    const release = lockScroll()
-    return () => release()
-  }, [isOpen])
+    let cleanup = () => {}
+    if (isOpen) {
+      setRendered(true)
+      setClosing(false)
+      const release = lockScroll()
+      cleanup = release
+    } else if (rendered) {
+      setClosing(true)
+      const t = setTimeout(() => {
+        setRendered(false)
+        setClosing(false)
+      }, 220)
+      cleanup = () => clearTimeout(t)
+    }
+    return () => cleanup()
+  }, [isOpen, rendered])
 
   // Close on escape key
   useEffect(() => {
@@ -259,18 +276,21 @@ const ExpandedShopCard = ({
     }
   }, [showReminderMenu])
 
-  if (!isOpen) return null
+  if (!rendered) return null
 
   return createPortal(
     <div 
-      className="fixed inset-0 z-50 flex items-end justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-slide-in overscroll-contain"
+      className={`fixed inset-0 z-50 flex items-end justify-center p-4 bg-black/60 overscroll-contain ${closing ? 'sheet-overlay-exit' : 'sheet-overlay-enter'}`}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
+        if (e.target === e.currentTarget) {
+          setClosing(true)
+          onClose()
+        }
       }}
     >
       <div 
         ref={modalRef}
-        className={`w-[95%] max-w-[380px] max-h-[80vh] overflow-y-auto no-scrollbar rounded-3xl animate-slide-up ${
+        className={`w-[95%] max-w-[380px] max-h-[80vh] overflow-hidden rounded-3xl sheet-panel ${closing ? 'sheet-exit' : 'sheet-enter'} ${
           isDark
             ? 'bg-gradient-to-br from-white/8 via-white/4 to-white/2 backdrop-blur-xl ring-1 ring-white/15 shadow-2xl shadow-black/20'
             : 'bg-gradient-to-br from-white/40 via-white/30 to-white/20 backdrop-blur-xl ring-1 ring-white/50 shadow-xl shadow-black/10'
@@ -285,42 +305,116 @@ const ExpandedShopCard = ({
           <div className={`w-12 h-1.5 rounded-full ${isDark ? 'bg-gradient-to-r from-white/40 to-white/20' : 'bg-gradient-to-r from-gray-400 to-gray-300'}`} />
         </div>
 
-        {/* Header */}
-        <div className="flex items-start justify-between p-6 pb-4">
-          <div className="flex-1">
-            <h2 id="expanded-shop-title" className={`text-[17px] font-semibold mb-1 leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {shop.name}
-            </h2>
-            <div className="flex items-center gap-2 mb-2">
-              <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                shop.userReported === 'closed' || !isShopOpen() 
-                  ? 'bg-rose-600/70 text-white' 
-                  : 'bg-green-600/70 text-white'
-              }`}>
-                {getStatusText()}
-              </span>
-              <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                {shop.type === 'liquor_store' ? 'Liquor Store' : 'Bar'}
+        {/* Modern Header */}
+        <div className="p-6 pb-4">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1 min-w-0">
+              <h2 id="expanded-shop-title" className={`text-xl font-bold mb-2 leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                {shop.name}
+              </h2>
+              <div className="flex items-center gap-3 mb-3">
+                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                  shop.userReported === 'closed' || !isShopOpen() 
+                    ? 'bg-rose-500 text-white' 
+                    : 'bg-green-500 text-white'
+                }`}>
+                  {getStatusText()}
+                </span>
+                <div className="flex items-center gap-1">
+                  <Star className="h-4 w-4 text-yellow-400" />
+                  <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {shop.rating}
+                  </span>
+                </div>
+              </div>
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                {shop.type === 'liquor_store' ? 'Liquor Store' : 'Bar'} • {shop.priceRange} Price Range
+              </p>
+            </div>
+            <button
+              ref={closeButtonRef}
+              onClick={() => { setClosing(true); onClose() }}
+              className={`p-2.5 rounded-full transition-colors hover-bounce ${
+                isDark
+                  ? 'bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'
+              }`}
+              type="button"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Location & Hours Card */}
+          <div className={`p-4 rounded-2xl mb-4 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
+            <div className="flex items-start gap-3 mb-3">
+              <MapPin className="h-5 w-5 text-blue-500 mt-0.5" />
+              <div className="flex-1">
+                <p className={`text-sm font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {shop.area}
+                </p>
+                <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                  {shop.address}
+                </p>
+                {distanceText && (
+                  <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {distanceText} away
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Clock className={`h-4 w-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+              <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                {shop.openTime} - {shop.closeTime}
               </span>
             </div>
           </div>
-          <button
-            ref={closeButtonRef}
-            onClick={onClose}
-            className={`p-2 rounded-full transition-colors hover-bounce ${
-              isDark
-                ? 'bg-white/5 backdrop-blur-md ring-1 ring-white/10 text-gray-300 hover:bg-white/10 hover:text-white'
-                : 'bg-white/20 backdrop-blur-md ring-1 ring-gray-300 text-gray-700 hover:bg-white/30 hover:text-gray-900'
-            }`}
-            type="button"
-            aria-label="Close"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
 
-        {/* Quick Actions */}
-        <div className="px-6 pb-4">
+          {/* Speciality */}
+          <div className={`p-4 rounded-2xl mb-4 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
+            <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+              {shop.speciality}
+            </p>
+          </div>
+
+          {/* Features */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            {shop.isPremium && (
+              <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-gradient-to-r from-yellow-400/20 to-purple-500/20 text-yellow-300 border border-yellow-400/30">
+                👑 Premium
+              </span>
+            )}
+            <span className={`px-3 py-1.5 rounded-full text-xs font-medium ${isDark ? 'bg-white/10 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
+              <CreditCard className="h-3 w-3 inline mr-1" />
+              Cards Accepted
+            </span>
+            <span className={`px-3 py-1.5 rounded-full text-xs font-medium ${isDark ? 'bg-white/10 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
+              <Car className="h-3 w-3 inline mr-1" />
+              Parking Available
+            </span>
+          </div>
+
+          {/* Primary Actions */}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <button
+              onClick={callShop}
+              className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl font-semibold transition-all active:scale-95 hover-bounce bg-green-600 text-white hover:bg-green-700 shadow-lg"
+            >
+              <Phone className="h-5 w-5" />
+              Call Now
+            </button>
+            <button
+              onClick={openInMaps}
+              className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl font-semibold transition-all active:scale-95 hover-bounce bg-blue-600 text-white hover:bg-blue-700 shadow-lg"
+            >
+              <Navigation className="h-5 w-5" />
+              Directions
+            </button>
+          </div>
+
+          {/* Secondary Actions */}
           <div className="grid grid-cols-4 gap-3">
             <button
               onClick={() => {
@@ -329,12 +423,12 @@ const ExpandedShopCard = ({
               }}
               className={`flex flex-col items-center p-3 rounded-2xl transition-all duration-300 active:scale-95 hover-bounce ${
                 isFavorite
-                  ? (isDark ? 'bg-gradient-to-br from-rose-500/25 to-rose-600/15 text-rose-300 ring-1 ring-rose-400/40 shadow-lg shadow-rose-500/10' : 'bg-gradient-to-br from-rose-100 to-rose-50 text-rose-600 ring-1 ring-rose-300 shadow-md')
-                  : (isDark ? 'bg-gradient-to-br from-white/8 to-white/4 text-gray-300 hover:from-white/12 hover:to-white/6 ring-1 ring-white/15 hover:ring-white/25' : 'bg-gradient-to-br from-white/30 to-white/20 text-gray-700 hover:from-white/40 hover:to-white/30 ring-1 ring-gray-300/50')
+                  ? 'bg-rose-100 text-rose-600 border border-rose-200'
+                  : (isDark ? 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200')
               }`}
             >
-              <Heart className={`h-5 w-5 mb-1 ${isFavorite ? 'pulse-glow-rose' : ''}`} />
-              <span className="text-[11px] font-medium">
+              <Heart className={`h-5 w-5 mb-1 ${isFavorite ? 'fill-current' : ''}`} />
+              <span className="text-xs font-medium">
                 {isFavorite ? 'Saved' : 'Save'}
               </span>
             </button>
@@ -346,12 +440,12 @@ const ExpandedShopCard = ({
               }}
               className={`flex flex-col items-center p-3 rounded-2xl transition-all duration-300 active:scale-95 hover-bounce ${
                 hasReminder
-                  ? (isDark ? 'bg-gradient-to-br from-yellow-500/25 to-amber-600/15 text-yellow-300 ring-1 ring-yellow-400/40 shadow-lg shadow-yellow-500/10' : 'bg-gradient-to-br from-yellow-100 to-amber-50 text-yellow-600 ring-1 ring-yellow-300 shadow-md')
-                  : (isDark ? 'bg-gradient-to-br from-white/8 to-white/4 text-gray-300 hover:from-white/12 hover:to-white/6 ring-1 ring-white/15 hover:ring-white/25' : 'bg-gradient-to-br from-white/30 to-white/20 text-gray-700 hover:from-white/40 hover:to-white/30 ring-1 ring-gray-300/50')
+                  ? 'bg-yellow-100 text-yellow-600 border border-yellow-200'
+                  : (isDark ? 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200')
               }`}
             >
-              {hasReminder ? <BellRing className="h-5 w-5 mb-1 pulse-glow-amber" /> : <Bell className="h-5 w-5 mb-1" />}
-              <span className="text-[11px] font-medium">Remind</span>
+              {hasReminder ? <BellRing className="h-5 w-5 mb-1" /> : <Bell className="h-5 w-5 mb-1" />}
+              <span className="text-xs font-medium">Remind</span>
             </button>
 
             <button
@@ -361,131 +455,21 @@ const ExpandedShopCard = ({
                 try { haptics.light() } catch {}
               }}
               className={`flex flex-col items-center p-3 rounded-2xl transition-all duration-300 active:scale-95 hover-bounce ${
-                isDark ? 'bg-gradient-to-br from-white/8 to-white/4 text-blue-400 hover:from-blue-500/10 hover:to-blue-600/5 ring-1 ring-white/15 hover:ring-blue-400/30' : 'bg-gradient-to-br from-white/30 to-white/20 text-blue-600 hover:from-blue-50 hover:to-blue-25 ring-1 ring-gray-300/50 hover:ring-blue-300'
+                isDark ? 'bg-white/5 text-blue-400 hover:bg-white/10 border border-white/10' : 'bg-gray-100 text-blue-600 hover:bg-gray-200 border border-gray-200'
               }`}
             >
               <Map className="h-5 w-5 mb-1" />
-              <span className="text-[11px] font-medium">Map</span>
+              <span className="text-xs font-medium">Map</span>
             </button>
 
             <button
               onClick={shareShop}
               className={`flex flex-col items-center p-3 rounded-2xl transition-all duration-300 active:scale-95 hover-bounce ${
-                isDark ? 'bg-gradient-to-br from-white/8 to-white/4 text-gray-300 hover:from-white/12 hover:to-white/6 ring-1 ring-white/15 hover:ring-white/25' : 'bg-gradient-to-br from-white/30 to-white/20 text-gray-700 hover:from-white/40 hover:to-white/30 ring-1 ring-gray-300/50'
+                isDark ? 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
               }`}
             >
               <Share className="h-5 w-5 mb-1" />
-              <span className="text-[11px] font-medium">Share</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Detailed Information */}
-        <div className="px-6 pb-6 space-y-4">
-          {/* Location & Rating */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-purple-400" />
-              <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                {shop.area}
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Star className="h-4 w-4 text-yellow-400" />
-              <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                {shop.rating}
-              </span>
-            </div>
-          </div>
-
-          {/* Address */}
-          <div className={`p-4 rounded-2xl ${isDark ? 'bg-gradient-to-br from-white/8 to-white/4 backdrop-blur-sm ring-1 ring-white/15 shadow-lg shadow-black/5' : 'bg-gradient-to-br from-white/60 to-white/40 ring-1 ring-gray-200/60 shadow-md'}`}>
-            <div className="flex items-start gap-2">
-              <Navigation className={`h-4 w-4 mt-0.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
-              <div>
-                <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                  {shop.address}
-                </p>
-                {distanceText && (
-                  <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {distanceText} away
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Hours */}
-          <div className={`p-4 rounded-2xl ${isDark ? 'bg-gradient-to-br from-white/8 to-white/4 backdrop-blur-sm ring-1 ring-white/15 shadow-lg shadow-black/5' : 'bg-gradient-to-br from-white/60 to-white/40 ring-1 ring-gray-200/60 shadow-md'}`}>
-            <div className="flex items-center gap-2 mb-2">
-              <Clock className={`h-4 w-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
-              <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                Hours
-              </span>
-            </div>
-            <p className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {shop.openTime} - {shop.closeTime}
-            </p>
-          </div>
-
-          {/* Speciality */}
-          <div className={`p-4 rounded-2xl ${isDark ? 'bg-gradient-to-br from-white/8 to-white/4 backdrop-blur-sm ring-1 ring-white/15 shadow-lg shadow-black/5' : 'bg-gradient-to-br from-white/60 to-white/40 ring-1 ring-gray-200/60 shadow-md'}`}>
-            <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-              {shop.speciality}
-            </p>
-          </div>
-
-          {/* Features */}
-          <div className={`p-4 rounded-2xl ${isDark ? 'bg-gradient-to-br from-white/8 to-white/4 backdrop-blur-sm ring-1 ring-white/15 shadow-lg shadow-black/5' : 'bg-gradient-to-br from-white/60 to-white/40 ring-1 ring-gray-200/60 shadow-md'}`}>
-            <div className="flex items-center gap-2 mb-2">
-              <Shield className={`h-4 w-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
-              <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                Features
-              </span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <span className={`px-2 py-1 rounded-lg text-xs ${isDark ? 'bg-white/10 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
-                {shop.priceRange} Price Range
-              </span>
-              {shop.isPremium && (
-                <span className="px-2 py-1 rounded-lg text-xs bg-gradient-to-r from-yellow-400/20 to-purple-500/20 text-yellow-300 border border-yellow-400/30">
-                  👑 Premium
-                </span>
-              )}
-              <span className={`px-2 py-1 rounded-lg text-xs ${isDark ? 'bg-white/10 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
-                <CreditCard className="h-3 w-3 inline mr-1" />
-                Cards Accepted
-              </span>
-              <span className={`px-2 py-1 rounded-lg text-xs ${isDark ? 'bg-white/10 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
-                <Car className="h-3 w-3 inline mr-1" />
-                Parking
-              </span>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-3 pt-2">
-            <button
-              onClick={callShop}
-              className={`flex items-center justify-center gap-2 py-3 px-4 rounded-2xl font-medium transition-all active:scale-95 hover-bounce shadow-md ${
-                isDark 
-                  ? 'bg-green-600 text-white hover:bg-green-700' 
-                  : 'bg-green-600 text-white hover:bg-green-700'
-              }`}
-            >
-              <Phone className="h-4 w-4" />
-              Call
-            </button>
-            <button
-              onClick={openInMaps}
-              className={`flex items-center justify-center gap-2 py-3 px-4 rounded-2xl font-medium transition-all active:scale-95 hover-bounce shadow-md ${
-                isDark 
-                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
-            >
-              <Navigation className="h-4 w-4" />
-              Directions
+              <span className="text-xs font-medium">Share</span>
             </button>
           </div>
         </div>
@@ -690,4 +674,4 @@ const ExpandedShopCard = ({
   )
 }
 
-export default ExpandedShopCard
+export default memo(ExpandedShopCard)

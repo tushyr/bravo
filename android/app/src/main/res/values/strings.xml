@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ThekaBar</string>
+    <string name="title_activity_main">ThekaBar</string>
+    <string name="package_name">com.thekabar.app</string>
+    <string name="custom_url_scheme">com.thekabar.app</string>
+</resources>

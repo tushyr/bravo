@@ -10,7 +10,8 @@ createRoot(document.getElementById('root')).render(
 )
 
 // Register Service Worker (installable PWA)
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
+const isNative = typeof window !== 'undefined' && window.Capacitor && window.Capacitor.isNativePlatform
+if ('serviceWorker' in navigator && import.meta.env.PROD && !isNative) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch((err) => {
       // Keep silent in production

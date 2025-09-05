@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Header from './components/Header'
 import SearchBar from './components/SearchBar'
 import CategoryChips from './components/CategoryChips'
@@ -9,6 +9,7 @@ import NearbyMap from './components/NearbyMap'
 import CityMap from './components/CityMap'
 import { mockShops } from './data/mockData'
 import { initHaptics } from './utils/haptics'
+import { apiFetch } from './utils/api'
 
 function App() {
   const [shops, setShops] = useState([])
@@ -217,7 +218,7 @@ function App() {
     const controller = new AbortController()
     const t = setTimeout(() => controller.abort(), 6000)
     try {
-      const res = await fetch('/api/shops', { signal: controller.signal })
+      const res = await apiFetch('/shops', { signal: controller.signal })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
       const incoming = Array.isArray(data?.shops) ? data.shops : []
@@ -450,15 +451,15 @@ function App() {
     }
   }, [activeCategory])
 
-  const toggleFavorite = (shopId) => {
+  const toggleFavorite = useCallback((shopId) => {
     setFavorites(prev => 
       prev.includes(shopId) 
         ? prev.filter(id => id !== shopId)
         : [...prev, shopId]
     )
-  }
+  }, [])
 
-  const updateShopStatus = async (shopId, isOpen) => {
+  const updateShopStatus = useCallback(async (shopId, isOpen) => {
     // Optimistic update
     setShops(prev => prev.map(shop =>
       shop.id === shopId
@@ -466,7 +467,7 @@ function App() {
         : shop
     ))
     try {
-      const res = await fetch(`/api/shops/${shopId}/report`, {
+      const res = await apiFetch(`/shops/${shopId}/report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isOpen })
@@ -480,7 +481,7 @@ function App() {
           : shop
       ))
     }
-  }
+  }, [])
 
   const dismissNotification = (id) => {
     setNotifications(prev => prev.filter(n => n.id !== id))
@@ -512,7 +513,7 @@ function App() {
     }
   }
 
-  const setReminder = (shopId, payload) => {
+  const setReminder = useCallback((shopId, payload) => {
     const shop = shops.find(s => s.id === shopId)
     let dueAt = null
     let kind = 'before_close'
@@ -569,17 +570,40 @@ function App() {
       const now = new Date()
       setNotifications(prev => [{ id: Date.now(), text: `Reminder set for ${shop.name} - ${confirmText}`, shopId, timestamp: now.toISOString(), read: false }, ...prev])
     }
-  }
+  }, [shops, notificationsEnabled])
 
-  const handleShowNearbyMap = (shop) => {
+  // Prefetch ExpandedShopCard chunk on idle to reduce first-open jank
+  useEffect(() => {
+    let idleId
+    const doPrefetch = () => import('./components/ExpandedShopCard')
+    try {
+      if ('requestIdleCallback' in window) {
+        // @ts-ignore
+        idleId = window.requestIdleCallback(doPrefetch)
+      } else {
+        idleId = setTimeout(doPrefetch, 800)
+      }
+    } catch {
+      /* ignore */
+    }
+    return () => {
+      try {
+        if (typeof idleId === 'number') clearTimeout(idleId)
+        // @ts-ignore
+        if (typeof idleId === 'object' && window.cancelIdleCallback) window.cancelIdleCallback(idleId)
+      } catch {}
+    }
+  }, [])
+
+  const handleShowNearbyMap = useCallback((shop) => {
     setMapCenterShop(shop)
     setShowNearbyMap(true)
-  }
+  }, [])
 
-  const closeNearbyMap = () => {
+  const closeNearbyMap = useCallback(() => {
     setShowNearbyMap(false)
     setMapCenterShop(null)
-  }
+  }, [])
 
   const handleShowCityMap = () => {
     setShowCityMap(true)

@@ -81,7 +81,7 @@ const CityMap = ({ isOpen, onClose, allShops, filteredShops, activeCategory, ope
   }, [isOpen, onClose])
 
   const openInMaps = (shop) => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${shop.coordinates.lat},${shop.coordinates.lng}&destination_place_id=${shop.name}`
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${shop.coordinates.lat},${shop.coordinates.lng}`
     window.open(url, '_blank')
   }
 
