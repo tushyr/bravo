@@ -61,6 +61,17 @@ input, select, textarea {
   overflow: hidden !important;
 }
 
+/* While any modal is open, hide heavy ambient background layer */
+.modal-open .app-ambient,
+.modal-open .header-ambient {
+  opacity: 0 !important;
+  transition: opacity 120ms ease-out;
+}
+.modal-open .app-ambient *,
+.modal-open .header-ambient * {
+  animation: none !important;
+}
+
 /* Utility: explicitly allow panning in both directions inside a horiz scroller
    This ensures vertical page scroll still works when swiping over the element */
 .allow-pan-x {
@@ -302,6 +313,15 @@ input, select, textarea {
 }
 
 
+
+
+/* Overlay performance helper: promote to its own layer and isolate paints */
+.overlay-boost {
+  will-change: opacity, transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: paint;
+}
 
 /* Long press visual feedback */
 .long-press-active {

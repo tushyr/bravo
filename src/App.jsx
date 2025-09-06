@@ -635,7 +635,7 @@ function App() {
     <div className="app-scroll">
       <div className={isDark ? 'min-h-screen bg-dark-900 text-white' : 'min-h-screen bg-gray-50 text-gray-900'}>
         {isDark && (
-          <div aria-hidden className="absolute inset-0 z-0 pointer-events-none transition-all duration-1000 ease-in-out">
+          <div aria-hidden className="absolute inset-0 z-0 pointer-events-none transition-all duration-1000 ease-in-out app-ambient">
             {/* Dynamic themed gradients based on active category */}
             {activeCategory === 'all' && (
               <>

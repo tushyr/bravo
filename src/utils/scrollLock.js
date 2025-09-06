@@ -1,6 +1,6 @@
 // Centralized scroll lock helper for apps that use a custom scroll container (.app-scroll)
-// Ensures: no background scroll while modal is open, no layout jump on close.
-// Works across mobile/desktop by fixing the scroller and restoring its position.
+// Ensures: no background scroll while modal is open, and restores scroll on close.
+// Uses position: fixed pinning to avoid browser quirks that reset scrollTop when overflow changes.
 
 let lockCount = 0
 let savedScrollTop = 0
@@ -16,7 +16,7 @@ export function lockScroll() {
   if (!scroller) return () => {}
 
   if (lockCount === 0) {
-    // Save current scroll
+    // Save current scroll position
     savedScrollTop = scroller.scrollTop || window.pageYOffset || document.documentElement.scrollTop || 0
 
     // Save inline styles we'll mutate
@@ -29,7 +29,7 @@ export function lockScroll() {
       overflow: scroller.style.overflow,
     }
 
-    // Fix the scroller in place and prevent any scroll bleed
+    // Pin the scroller to prevent any scroll bleed and keep visual position
     scroller.style.position = 'fixed'
     scroller.style.top = `-${savedScrollTop}px`
     scroller.style.left = '0'
@@ -37,7 +37,7 @@ export function lockScroll() {
     scroller.style.width = '100%'
     scroller.style.overflow = 'hidden'
 
-    // Keep CSS hook for any additional rules
+    // CSS hook for any global rules
     document.body.classList.add('modal-open')
   }
 
@@ -62,11 +62,13 @@ export function unlockScroll() {
   scroller.style.overflow = prevStyles.overflow || ''
 
   // Restore scroll position
-  if (scroller === document.documentElement || scroller === document.body) {
-    window.scrollTo(0, savedScrollTop)
-  } else {
-    scroller.scrollTop = savedScrollTop
-  }
+  try {
+    if (scroller === document.documentElement || scroller === document.body) {
+      window.scrollTo(0, savedScrollTop)
+    } else {
+      scroller.scrollTop = savedScrollTop
+    }
+  } catch {}
 
   document.body.classList.remove('modal-open')
 }

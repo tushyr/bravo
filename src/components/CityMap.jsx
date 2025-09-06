@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { LuX as X, LuMapPin as MapPin } from 'react-icons/lu'
 import { lockScroll } from '../utils/scrollLock'
+import { isShopOpen, getStatusText as getShopStatusText } from '../utils/shop'
 import { haptics } from '../utils/haptics'
 
 const CityMap = ({ isOpen, onClose, allShops, filteredShops, activeCategory, openNowFilter, isDark = false }) => {
@@ -80,30 +81,11 @@ const CityMap = ({ isOpen, onClose, allShops, filteredShops, activeCategory, ope
     }
   }, [isOpen, onClose])
 
-  const openInMaps = (shop) => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${shop.coordinates.lat},${shop.coordinates.lng}`
-    window.open(url, '_blank')
-  }
+  // directions handling is not used in this dialog currently
 
-  const isShopOpen = (shop) => {
-    const now = new Date()
-    const currentHour = now.getHours()
-    const currentMinute = now.getMinutes()
-    const currentTime = currentHour * 60 + currentMinute
+  // isShopOpen imported from utils/shop
 
-    const [openHour, openMin] = shop.openTime.split(':').map(Number)
-    const [closeHour, closeMin] = shop.closeTime.split(':').map(Number)
-    const openTime = openHour * 60 + openMin
-    const closeTime = closeHour * 60 + closeMin
-
-    return currentTime >= openTime && currentTime <= closeTime
-  }
-
-  const getStatusText = (shop) => {
-    if (shop.userReported === 'closed') return 'Reported Closed'
-    if (shop.userReported === 'open') return 'Reported Open'
-    return isShopOpen(shop) ? 'Open Now' : 'Closed'
-  }
+  const getStatusText = (shop) => getShopStatusText(shop)
 
   // Categorize shops
   const openShops = allShops.filter(shop => isShopOpen(shop) || shop.userReported === 'open')
@@ -127,9 +109,9 @@ const CityMap = ({ isOpen, onClose, allShops, filteredShops, activeCategory, ope
   if (!isOpen) return null
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 md:p-4 overscroll-contain">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 md:p-4 overscroll-contain touch-none select-none" onWheel={(e) => e.preventDefault()} onTouchMove={(e) => e.preventDefault()}>
       {/* Backdrop */}
-      <div className={isDark ? 'absolute inset-0 bg-black/80 backdrop-blur-sm' : 'absolute inset-0 bg-black/50 backdrop-blur-sm'} onClick={() => { try { haptics.light() } catch {}; onClose() }} />
+      <div className={isDark ? 'absolute inset-0 bg-black/95 overlay-boost' : 'absolute inset-0 bg-black/70 overlay-boost'} onClick={() => { try { haptics.light() } catch {}; onClose() }} />
       
       {/* Modal */}
       <div

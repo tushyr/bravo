@@ -9,34 +9,19 @@ import {
   LuMap as Map
 } from 'react-icons/lu'
 import { haptics } from '../utils/haptics'
+import { isShopOpen as isLiveOpen } from '../utils/shop'
 import useLongPress from '../hooks/useLongPress'
 const ExpandedShopCard = lazy(() => import('./ExpandedShopCard'))
 
 const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetReminder, hasReminder = false, isDark = false, isLoading = false, onShowNearbyMap, activeCategory = 'all' }) => {
   const [showExpandedCard, setShowExpandedCard] = useState(false)
-  const isOpen = () => {
-    const now = new Date()
-    const currentHour = now.getHours()
-    const currentMinute = now.getMinutes()
-    const currentTime = currentHour * 60 + currentMinute
-
-    const [openHour, openMin] = shop.openTime.split(':').map(Number)
-    const [closeHour, closeMin] = shop.closeTime.split(':').map(Number)
-    const openTime = openHour * 60 + openMin
-    const closeTime = closeHour * 60 + closeMin
-
-    return currentTime >= openTime && currentTime <= closeTime
-  }
 
   // Format distance when available (e.g., 1.2 km or 12 km)
   const distanceText = (shop && typeof shop.distanceKm === 'number' && isFinite(shop.distanceKm))
     ? (shop.distanceKm < 10 ? `${shop.distanceKm.toFixed(1)} km` : `${Math.round(shop.distanceKm)} km`)
     : null
 
-  const getStatusText = () => {
-    const info = getStatusInfo()
-    return info.text
-  }
+  // getStatusText consolidated within getStatusInfo usage; no standalone export needed
 
   const formatTimeAgo = (iso) => {
     if (!iso) return null
@@ -66,14 +51,11 @@ const ShopCard = ({ shop, isFavorite, onToggleFavorite, onUpdateStatus, onSetRem
       return { text: isOpenFlag ? 'Reported Open' : 'Reported Closed', isOpen: isOpenFlag }
     }
 
-    const liveOpen = isOpen()
+    const liveOpen = isLiveOpen(shop)
     return { text: liveOpen ? 'Open Now' : 'Closed', isOpen: liveOpen }
   }
 
-  const openInMaps = () => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${shop.coordinates.lat},${shop.coordinates.lng}`
-    window.open(url, '_blank')
-  }
+  // Directions handled in ExpandedShopCard; when needed here, use openShopInMaps(shop)
 
   const callShop = () => {
     window.open(`tel:${shop.phone}`, '_self')

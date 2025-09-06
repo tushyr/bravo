@@ -14,10 +14,10 @@ import {
   LuNavigation as Navigation,
   LuCreditCard as CreditCard,
   LuCar as Car,
-  
 } from 'react-icons/lu'
 import { haptics } from '../utils/haptics'
 import { lockScroll } from '../utils/scrollLock'
+import { isShopOpen, openShopInMaps, getStatusText as getShopStatusText } from '../utils/shop'
 
 const ExpandedShopCard = ({ 
   shop, 
@@ -46,25 +46,7 @@ const ExpandedShopCard = ({
   const [rendered, setRendered] = useState(isOpen)
   const [closing, setClosing] = useState(false)
 
-  const isShopOpen = () => {
-    const now = new Date()
-    const currentHour = now.getHours()
-    const currentMinute = now.getMinutes()
-    const currentTime = currentHour * 60 + currentMinute
-
-    const [openHour, openMin] = shop.openTime.split(':').map(Number)
-    const [closeHour, closeMin] = shop.closeTime.split(':').map(Number)
-    const openTime = openHour * 60 + openMin
-    const closeTime = closeHour * 60 + closeMin
-
-    return currentTime >= openTime && currentTime <= closeTime
-  }
-
-  const getStatusText = () => {
-    if (shop.userReported === 'closed') return 'Reported Closed'
-    if (shop.userReported === 'open') return 'Reported Open'
-    return isShopOpen() ? 'Open Now' : 'Closed'
-  }
+  const getStatusText = () => getShopStatusText(shop)
 
   const distanceText = useMemo(() => {
     if (!shop || typeof shop.distanceKm !== 'number' || !isFinite(shop.distanceKm)) return null
@@ -72,8 +54,7 @@ const ExpandedShopCard = ({
   }, [shop?.distanceKm])
 
   const openInMaps = () => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${shop.coordinates.lat},${shop.coordinates.lng}`
-    window.open(url, '_blank')
+    openShopInMaps(shop)
     try { haptics.success() } catch {}
   }
 
@@ -280,7 +261,9 @@ const ExpandedShopCard = ({
 
   return createPortal(
     <div 
-      className={`fixed inset-0 z-50 flex items-end justify-center p-4 bg-black/60 overscroll-contain ${closing ? 'sheet-overlay-exit' : 'sheet-overlay-enter'}`}
+      className={`fixed inset-0 z-[9999] flex items-end justify-center p-4 ${isDark ? 'bg-black/95' : 'bg-black/70'} overscroll-contain overlay-boost touch-none select-none ${closing ? 'sheet-overlay-exit' : 'sheet-overlay-enter'}`}
+      onWheel={(e) => { e.preventDefault() }}
+      onTouchMove={(e) => { e.preventDefault() }}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           setClosing(true)
@@ -290,10 +273,10 @@ const ExpandedShopCard = ({
     >
       <div 
         ref={modalRef}
-        className={`w-[95%] max-w-[380px] max-h-[80vh] overflow-hidden rounded-3xl sheet-panel ${closing ? 'sheet-exit' : 'sheet-enter'} ${
+        className={`w-[96%] max-w-[360px] md:max-w-[420px] max-h-[78vh] md:max-h-[80vh] overflow-hidden rounded-2xl md:rounded-3xl sheet-panel ${closing ? 'sheet-exit' : 'sheet-enter'} ${
           isDark
-            ? 'bg-gradient-to-br from-white/8 via-white/4 to-white/2 backdrop-blur-xl ring-1 ring-white/15 shadow-2xl shadow-black/20'
-            : 'bg-gradient-to-br from-white/40 via-white/30 to-white/20 backdrop-blur-xl ring-1 ring-white/50 shadow-xl shadow-black/10'
+            ? 'bg-neutral-950 ring-1 ring-white/10 shadow-2xl shadow-black/40'
+            : 'bg-white ring-1 ring-gray-200 shadow-xl shadow-black/20'
         }`}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
@@ -301,19 +284,19 @@ const ExpandedShopCard = ({
         aria-labelledby="expanded-shop-title"
       >
         {/* Handle bar */}
-        <div className="flex justify-center pt-4 pb-3">
-          <div className={`w-12 h-1.5 rounded-full ${isDark ? 'bg-gradient-to-r from-white/40 to-white/20' : 'bg-gradient-to-r from-gray-400 to-gray-300'}`} />
+        <div className="flex justify-center pt-3 md:pt-4 pb-2.5 md:pb-3">
+          <div className={`w-10 h-1 md:w-12 md:h-1.5 rounded-full ${isDark ? 'bg-gradient-to-r from-white/40 to-white/20' : 'bg-gradient-to-r from-gray-400 to-gray-300'}`} />
         </div>
 
         {/* Modern Header */}
-        <div className="p-6 pb-4">
+        <div className="p-5 md:p-6 pb-3 md:pb-4">
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1 min-w-0">
-              <h2 id="expanded-shop-title" className={`text-xl font-bold mb-2 leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              <h2 id="expanded-shop-title" className={`text-lg md:text-xl font-bold mb-1.5 md:mb-2 leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 {shop.name}
               </h2>
-              <div className="flex items-center gap-3 mb-3">
-                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+              <div className="flex items-center gap-2.5 md:gap-3 mb-2.5 md:mb-3">
+                <span className={`px-2.5 md:px-3 py-1 rounded-full text-xs md:text-sm font-semibold ${
                   shop.userReported === 'closed' || !isShopOpen() 
                     ? 'bg-rose-500 text-white' 
                     : 'bg-green-500 text-white'
@@ -322,12 +305,12 @@ const ExpandedShopCard = ({
                 </span>
                 <div className="flex items-center gap-1">
                   <Star className="h-4 w-4 text-yellow-400" />
-                  <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  <span className={`text-sm md:text-base font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     {shop.rating}
                   </span>
                 </div>
               </div>
-              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className={`text-[13px] md:text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                 {shop.type === 'liquor_store' ? 'Liquor Store' : 'Bar'} • {shop.priceRange} Price Range
               </p>
             </div>
@@ -347,67 +330,67 @@ const ExpandedShopCard = ({
           </div>
 
           {/* Location & Hours Card */}
-          <div className={`p-4 rounded-2xl mb-4 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
-            <div className="flex items-start gap-3 mb-3">
-              <MapPin className="h-5 w-5 text-blue-500 mt-0.5" />
+          <div className={`p-3.5 md:p-4 rounded-2xl mb-3.5 md:mb-4 ${isDark ? 'bg-neutral-900 border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
+            <div className="flex items-start gap-2.5 md:gap-3 mb-2.5 md:mb-3">
+              <MapPin className="h-4 w-4 md:h-5 md:w-5 text-blue-500 mt-0.5" />
               <div className="flex-1">
-                <p className={`text-sm font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <p className={`text-[13px] md:text-sm font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {shop.area}
                 </p>
-                <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                <p className={`text-[13px] md:text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                   {shop.address}
                 </p>
                 {distanceText && (
-                  <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <p className={`text-[11px] md:text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                     {distanceText} away
                   </p>
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 md:gap-3">
               <Clock className={`h-4 w-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
-              <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+              <span className={`text-[13px] md:text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                 {shop.openTime} - {shop.closeTime}
               </span>
             </div>
           </div>
 
           {/* Speciality */}
-          <div className={`p-4 rounded-2xl mb-4 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
-            <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          <div className={`p-3.5 md:p-4 rounded-2xl mb-3.5 md:mb-4 ${isDark ? 'bg-neutral-900 border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
+            <p className={`text-[13px] md:text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
               {shop.speciality}
             </p>
           </div>
 
           {/* Features */}
-          <div className="flex flex-wrap gap-2 mb-6">
+          <div className="flex flex-wrap gap-2 mb-5 md:mb-6">
             {shop.isPremium && (
-              <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-gradient-to-r from-yellow-400/20 to-purple-500/20 text-yellow-300 border border-yellow-400/30">
+              <span className="px-2.5 md:px-3 py-1.5 rounded-full text-[11px] md:text-xs font-medium bg-gradient-to-r from-yellow-400/20 to-purple-500/20 text-yellow-300 border border-yellow-400/30">
                 👑 Premium
               </span>
             )}
-            <span className={`px-3 py-1.5 rounded-full text-xs font-medium ${isDark ? 'bg-white/10 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
+            <span className={`px-2.5 md:px-3 py-1.5 rounded-full text-[11px] md:text-xs font-medium ${isDark ? 'bg-white/10 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
               <CreditCard className="h-3 w-3 inline mr-1" />
               Cards Accepted
             </span>
-            <span className={`px-3 py-1.5 rounded-full text-xs font-medium ${isDark ? 'bg-white/10 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
+            <span className={`px-2.5 md:px-3 py-1.5 rounded-full text-[11px] md:text-xs font-medium ${isDark ? 'bg-white/10 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
               <Car className="h-3 w-3 inline mr-1" />
               Parking Available
             </span>
           </div>
 
           {/* Primary Actions */}
-          <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="grid grid-cols-2 gap-2.5 md:gap-3 mb-3.5 md:mb-4">
             <button
               onClick={callShop}
-              className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl font-semibold transition-all active:scale-95 hover-bounce bg-green-600 text-white hover:bg-green-700 shadow-lg"
+              className="flex items-center justify-center gap-2 py-2.5 md:py-3 px-4 rounded-xl md:rounded-2xl text-sm md:text-base font-semibold transition-all active:scale-95 hover-bounce bg-green-600 text-white hover:bg-green-700 shadow-lg"
             >
               <Phone className="h-5 w-5" />
               Call Now
             </button>
             <button
               onClick={openInMaps}
-              className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl font-semibold transition-all active:scale-95 hover-bounce bg-blue-600 text-white hover:bg-blue-700 shadow-lg"
+              className="flex items-center justify-center gap-2 py-2.5 md:py-3 px-4 rounded-xl md:rounded-2xl text-sm md:text-base font-semibold transition-all active:scale-95 hover-bounce bg-blue-600 text-white hover:bg-blue-700 shadow-lg"
             >
               <Navigation className="h-5 w-5" />
               Directions
@@ -415,20 +398,20 @@ const ExpandedShopCard = ({
           </div>
 
           {/* Secondary Actions */}
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-4 gap-2 md:gap-3">
             <button
               onClick={() => {
                 onToggleFavorite(shop.id)
                 try { haptics.toggle(!isFavorite) } catch {}
               }}
-              className={`flex flex-col items-center p-3 rounded-2xl transition-all duration-300 active:scale-95 hover-bounce ${
+              className={`flex flex-col items-center p-2.5 md:p-3 rounded-xl md:rounded-2xl transition-all duration-300 active:scale-95 hover-bounce ${
                 isFavorite
                   ? 'bg-rose-100 text-rose-600 border border-rose-200'
                   : (isDark ? 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200')
               }`}
             >
               <Heart className={`h-5 w-5 mb-1 ${isFavorite ? 'fill-current' : ''}`} />
-              <span className="text-xs font-medium">
+              <span className="text-[11px] md:text-xs font-medium">
                 {isFavorite ? 'Saved' : 'Save'}
               </span>
             </button>
@@ -438,14 +421,14 @@ const ExpandedShopCard = ({
                 setShowReminderMenu(true)
                 try { haptics.light() } catch {}
               }}
-              className={`flex flex-col items-center p-3 rounded-2xl transition-all duration-300 active:scale-95 hover-bounce ${
+              className={`flex flex-col items-center p-2.5 md:p-3 rounded-xl md:rounded-2xl transition-all duration-300 active:scale-95 hover-bounce ${
                 hasReminder
                   ? 'bg-yellow-100 text-yellow-600 border border-yellow-200'
                   : (isDark ? 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200')
               }`}
             >
               {hasReminder ? <BellRing className="h-5 w-5 mb-1" /> : <Bell className="h-5 w-5 mb-1" />}
-              <span className="text-xs font-medium">Remind</span>
+              <span className="text-[11px] md:text-xs font-medium">Remind</span>
             </button>
 
             <button
@@ -454,35 +437,35 @@ const ExpandedShopCard = ({
                 onClose()
                 try { haptics.light() } catch {}
               }}
-              className={`flex flex-col items-center p-3 rounded-2xl transition-all duration-300 active:scale-95 hover-bounce ${
+              className={`flex flex-col items-center p-2.5 md:p-3 rounded-xl md:rounded-2xl transition-all duration-300 active:scale-95 hover-bounce ${
                 isDark ? 'bg-white/5 text-blue-400 hover:bg-white/10 border border-white/10' : 'bg-gray-100 text-blue-600 hover:bg-gray-200 border border-gray-200'
               }`}
             >
               <Map className="h-5 w-5 mb-1" />
-              <span className="text-xs font-medium">Map</span>
+              <span className="text-[11px] md:text-xs font-medium">Map</span>
             </button>
 
             <button
               onClick={shareShop}
-              className={`flex flex-col items-center p-3 rounded-2xl transition-all duration-300 active:scale-95 hover-bounce ${
+              className={`flex flex-col items-center p-2.5 md:p-3 rounded-xl md:rounded-2xl transition-all duration-300 active:scale-95 hover-bounce ${
                 isDark ? 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
               }`}
             >
               <Share className="h-5 w-5 mb-1" />
-              <span className="text-xs font-medium">Share</span>
+              <span className="text-[11px] md:text-xs font-medium">Share</span>
             </button>
           </div>
         </div>
 
         {/* Reminder Menu Overlay */}
         {showReminderMenu && (
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/95 overlay-boost flex items-center justify-center p-4">
             <div
               ref={reminderMenuRef}
               className={`w-full max-w-xs rounded-3xl p-6 ${
                 isDark 
-                  ? 'bg-gradient-to-br from-white/12 via-white/8 to-white/4 backdrop-blur-xl ring-1 ring-white/20 shadow-2xl shadow-black/30' 
-                  : 'bg-gradient-to-br from-white/70 via-white/60 to-white/50 backdrop-blur-xl ring-1 ring-white/60 shadow-xl shadow-black/15'
+                  ? 'bg-neutral-900 ring-1 ring-white/15 shadow-2xl shadow-black/40' 
+                  : 'bg-white ring-1 ring-gray-200 shadow-xl shadow-black/20'
               }`}
               role="dialog"
               aria-modal="true"

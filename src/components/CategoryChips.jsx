@@ -279,7 +279,9 @@ const CategoryChips = ({ activeCategory, setActiveCategory, openNowFilter, setOp
       {/* Distance Modal: compact centered card */}
       {showRadiusSheet && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 ${isDark ? 'bg-black/95' : 'bg-black/70'} overlay-boost touch-none select-none overscroll-contain`}
+          onWheel={(e) => e.preventDefault()}
+          onTouchMove={(e) => e.preventDefault()}
           onClick={() => setShowRadiusSheet(false)}
         >
           <div
