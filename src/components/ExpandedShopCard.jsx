@@ -16,7 +16,7 @@ import {
   LuCar as Car,
 } from 'react-icons/lu'
 import { haptics } from '../utils/haptics'
-import { lockScroll } from '../utils/scrollLock'
+import { lockScroll, unlockScroll } from '../utils/scrollLock'
 import { isShopOpen, openShopInMaps, getStatusText as getShopStatusText } from '../utils/shop'
 
 const ExpandedShopCard = ({ 
@@ -45,6 +45,8 @@ const ExpandedShopCard = ({
   // Keep mounted during closing animation
   const [rendered, setRendered] = useState(isOpen)
   const [closing, setClosing] = useState(false)
+  // Lighter elevation during entry to reduce compositing cost
+  const [panelAnimating, setPanelAnimating] = useState(false)
 
   const getStatusText = () => getShopStatusText(shop)
 
@@ -54,13 +56,27 @@ const ExpandedShopCard = ({
   }, [shop?.distanceKm])
 
   const openInMaps = () => {
-    openShopInMaps(shop)
-    try { haptics.success() } catch {}
+    // Close first to release scroll lock and overlay to avoid blank return
+    try { unlockScroll() } catch {}
+    setClosing(true)
+    onClose()
+    // Slight delay to allow state commit before opening external app
+    setTimeout(() => {
+      openShopInMaps(shop)
+      try { haptics.success() } catch {}
+    }, 80)
   }
 
   const callShop = () => {
-    window.open(`tel:${shop.phone}`, '_self')
-    try { haptics.light() } catch {}
+    // Close first to release scroll lock and overlay to avoid blank return
+    try { unlockScroll() } catch {}
+    setClosing(true)
+    onClose()
+    setTimeout(() => {
+      try { haptics.light() } catch {}
+      // Use location to hand off to dialer without creating a new browsing context
+      window.location.href = `tel:${shop.phone}`
+    }, 80)
   }
 
   const shareShop = async () => {
@@ -108,6 +124,7 @@ const ExpandedShopCard = ({
     if (isOpen) {
       setRendered(true)
       setClosing(false)
+      setPanelAnimating(true)
       const release = lockScroll()
       cleanup = release
     } else if (rendered) {
@@ -133,9 +150,23 @@ const ExpandedShopCard = ({
     return () => document.removeEventListener('keydown', onKey)
   }, [isOpen, onClose])
 
-  // Focus management for main modal (trap and restore)
+  // If the app loses visibility (e.g., user opens dialer or Maps), auto-close to avoid stale overlay on return
   useEffect(() => {
     if (!isOpen) return
+    const onVis = () => {
+      if (document.hidden) {
+        setClosing(true)
+        onClose()
+      }
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [isOpen, onClose])
+
+  // Focus management for main modal (trap and restore);
+  // Defer moving focus until after the panel enter animation finishes to avoid jank.
+  useEffect(() => {
+    if (!isOpen || panelAnimating) return
 
     previouslyFocusedRef.current = document.activeElement
 
@@ -262,8 +293,6 @@ const ExpandedShopCard = ({
   return createPortal(
     <div 
       className={`fixed inset-0 z-[9999] flex items-end justify-center p-4 ${isDark ? 'bg-black/95' : 'bg-black/70'} overscroll-contain overlay-boost touch-none select-none ${closing ? 'sheet-overlay-exit' : 'sheet-overlay-enter'}`}
-      onWheel={(e) => { e.preventDefault() }}
-      onTouchMove={(e) => { e.preventDefault() }}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           setClosing(true)
@@ -275,9 +304,13 @@ const ExpandedShopCard = ({
         ref={modalRef}
         className={`w-[96%] max-w-[360px] md:max-w-[420px] max-h-[78vh] md:max-h-[80vh] overflow-hidden rounded-2xl md:rounded-3xl sheet-panel ${closing ? 'sheet-exit' : 'sheet-enter'} ${
           isDark
-            ? 'bg-neutral-950 ring-1 ring-white/10 shadow-2xl shadow-black/40'
-            : 'bg-white ring-1 ring-gray-200 shadow-xl shadow-black/20'
+            ? `bg-neutral-950 ring-1 ring-white/10 ${panelAnimating ? 'shadow-lg shadow-black/30' : 'shadow-2xl shadow-black/40'}`
+            : `bg-white ring-1 ring-gray-200 ${panelAnimating ? 'shadow-md shadow-black/10' : 'shadow-xl shadow-black/20'}`
         }`}
+        onAnimationEnd={(e) => {
+          // When the enter animation finishes, raise elevation
+          if (e.animationName === 'sheet-in') setPanelAnimating(false)
+        }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -297,7 +330,7 @@ const ExpandedShopCard = ({
               </h2>
               <div className="flex items-center gap-2.5 md:gap-3 mb-2.5 md:mb-3">
                 <span className={`px-2.5 md:px-3 py-1 rounded-full text-xs md:text-sm font-semibold ${
-                  shop.userReported === 'closed' || !isShopOpen() 
+                  shop.userReported === 'closed' || !isShopOpen(shop) 
                     ? 'bg-rose-500 text-white' 
                     : 'bg-green-500 text-white'
                 }`}>

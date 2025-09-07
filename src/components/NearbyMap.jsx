@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { LuX as X, LuMapPin as MapPin, LuStar as Star, LuNavigation as Navigation } from 'react-icons/lu'
-import { lockScroll } from '../utils/scrollLock'
+import { lockScroll, unlockScroll } from '../utils/scrollLock'
 import { isShopOpen, openShopInMaps, getStatusText as getShopStatusText } from '../utils/shop'
 import { haptics } from '../utils/haptics'
 
@@ -35,8 +35,27 @@ const NearbyMap = ({ isOpen, onClose, centerShop, allShops, isDark = false }) =>
     }
   }, [isOpen, onClose])
 
+  // If app loses visibility (e.g., Maps opens), auto-close to avoid stale overlay on return
+  useEffect(() => {
+    if (!isOpen) return
+    const onVis = () => {
+      if (document.hidden) {
+        try { unlockScroll() } catch {}
+        onClose()
+      }
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [isOpen, onClose])
+
   const openInMaps = (shop) => {
-    openShopInMaps(shop)
+    // Release lock and close first to prevent blank screen on return
+    try { unlockScroll() } catch {}
+    onClose()
+    setTimeout(() => {
+      openShopInMaps(shop)
+      try { haptics.success() } catch {}
+    }, 80)
   }
 
   // isShopOpen now imported from utils/shop
